@@ -12,7 +12,7 @@ app.use(cors({
 }));
 app.use(express.json());
 
-const API_KEY = process.env.API_KEY || 'jouw_geheime_api_key';
+const API_KEY = process.env.API_KEY || '861396c20f3ffc10ae7af8def0783aeb';
 
 const db = new sqlite3.Database('locations.db');
 
@@ -144,5 +144,6 @@ app.post('/api/wipe/reset', checkApiKey, (req, res) => {
     });
 });
 
-// Alleen luisteren op localhost
-app.listen(5000, '127.0.0.1', () => console.log('Server running on localhost:5000'));
+// Listen on all interfaces and use PORT env variable for Render
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));
