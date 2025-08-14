@@ -15,11 +15,7 @@ if git diff --cached --quiet; then
 else
   git commit -m "$COMMIT_MSG"
 fi
-
-git push -u origin "$CURRENT_BRANCH"
-
-# Detect current branch and push
-CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-
 echo "All files pushed to GitHub!"
 echo "All files pushed to GitHub on branch $CURRENT_BRANCH!"
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+git push -u origin "$CURRENT_BRANCH"
