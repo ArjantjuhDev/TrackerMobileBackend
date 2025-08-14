@@ -1,0 +1,18 @@
+# Android Studio build configuration for TrackerMobilePrivate
+# Plaats dit bestand in de projectroot voor een standaard Android build setup.
+
+# build.conf.yaml
+android:
+  compileSdk: 36
+  minSdk: 26
+  targetSdk: 36
+  applicationId: com.example.trackermobileprivate
+  versionCode: 2
+  versionName: "1.1"
+  signingConfig:
+    storeFile: keystore.jks
+    storePassword: password
+    keyAlias: key0
+    keyPassword: password
+modules:
+  - app

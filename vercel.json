@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "builds": [
+  { "src": "api/tracker_server.py", "use": "@vercel/python" },
+    { "src": "public/index.html", "use": "@vercel/static" }
+  ],
+  "routes": [
+  { "src": "/api/(.*)", "dest": "api/tracker_server.py" },
+    { "src": "/(.*)", "dest": "/public/index.html" }
+  ],
+  "env": {
+    "API_KEY": "jouw_geheime_api_key"
+  }
+}

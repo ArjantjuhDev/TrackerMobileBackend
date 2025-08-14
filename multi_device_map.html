@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <title>Alle toestel locaties</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        #map { height: 500px; width: 100%; }
+    </style>
+</head>
+<body>
+    <h1>Alle toestel locaties</h1>
+    <div id="map"></div>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        async function fetchLocations() {
+            const response = await fetch('http://192.168.1.123:5000/api/locations', {
+                headers: { 'X-API-Key': 'jouw_geheime_api_key' }
+            });
+            return await response.json();
+        }
+        async function showMap() {
+            const locations = await fetchLocations();
+            const map = L.map('map').setView([52, 5], 7);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+            }).addTo(map);
+            locations.forEach(loc => {
+                if (loc.lat && loc.lon) {
+                    const marker = L.marker([loc.lat, loc.lon]).addTo(map);
+                    marker.bindPopup(`Toestel: ${loc.device_id}<br>Lat: ${loc.lat}<br>Lon: ${loc.lon}<br>Tijd: ${loc.timestamp}`);
+                }
+            });
+        }
+        showMap();
+    </script>
+</body>
+</html>
