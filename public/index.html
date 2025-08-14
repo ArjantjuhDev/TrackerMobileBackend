@@ -154,26 +154,55 @@ window.onload = function() {
     pairDeviceResult.textContent = 'Bezig met koppelen...';
     pairDeviceResult.style.color = '#fff';
     try {
-  const res = await fetch('http://localhost:5000/api/pair_device', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': 'test123' // Vervang dit door de echte API key
-        },
-        body: JSON.stringify({code: appCode})
-      });
-      const data = await res.json();
-      if (data.success) {
+      // Timeout logic
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 8000); // 8s timeout
+      let res;
+      try {
+        res = await fetch('https://trackermobilebackend.onrender.com/api/pair_device', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': '861396c20f3ffc10ae7af8def0783aeb'
+          },
+          body: JSON.stringify({code: appCode}),
+          signal: controller.signal
+        });
+        console.log('Pairing fetch response:', res);
+      } catch (fetchErr) {
+        console.error('Pairing fetch error:', fetchErr);
+        if (fetchErr.name === 'AbortError') {
+          pairDeviceResult.textContent = 'Fout: server reageert niet (timeout).';
+        } else {
+          pairDeviceResult.textContent = `Netwerkfout: ${fetchErr.message}`;
+        }
+        pairDeviceResult.style.color = '#d32f2f';
+        clearTimeout(timeout);
+        return;
+      }
+      clearTimeout(timeout);
+      let data = {};
+      try {
+        data = await res.json();
+        console.log('Pairing response JSON:', data);
+      } catch (jsonErr) {
+        console.error('Pairing JSON error:', jsonErr);
+        pairDeviceResult.textContent = `Fout bij koppelen: geen geldige JSON (${res.status})`;
+        pairDeviceResult.style.color = '#d32f2f';
+        return;
+      }
+      if (res.ok && data.success) {
         pairDeviceResult.textContent = 'Koppeling geslaagd!';
         pairDeviceResult.style.color = '#388e3c';
-        // Optionally, load device details after successful pairing
         loadDeviceDetails();
       } else {
-        pairDeviceResult.textContent = 'Koppeling mislukt: ' + (data.reason || 'Onbekende fout');
+        let errorMsg = data.error || data.reason || 'Onbekende fout';
+        pairDeviceResult.textContent = `Koppeling mislukt (${res.status}): ${errorMsg}`;
         pairDeviceResult.style.color = '#d32f2f';
       }
     } catch (e) {
-      pairDeviceResult.textContent = 'Fout bij koppelen.';
+      console.error('Pairing catch error:', e);
+      pairDeviceResult.textContent = `Fout bij koppelen: ${e.message}`;
       pairDeviceResult.style.color = '#d32f2f';
     }
   });
