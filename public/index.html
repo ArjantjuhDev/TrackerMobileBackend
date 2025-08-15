@@ -226,7 +226,8 @@
 
     // Socket.io connection
     let socket = null;
-    let socketServerUrl = "ws://localhost:4000";
+    // Use your Render backend websocket address below (replace with your actual Render URL)
+    let socketServerUrl = "wss://tracker-mobile-backend.onrender.com";
 
     // Locatie op kaart en delen
     let lastLocation = null;
@@ -265,26 +266,33 @@
         if (socket) socket.disconnect();
         try {
             socket = io(socketServerUrl, { transports: ['websocket'] });
+            console.log('Socket.IO: created socket, joining room', code);
             socket.on('connect', () => {
                 document.getElementById('connectionStatus').textContent = 'Verbinding maken...';
+                console.log('Socket.IO: connected, emitting join-room', code);
                 socket.emit('join-room', code);
                 requestPermissionsOnApp();
                 setupLocationListeners();
             });
             socket.on('paired', () => {
                 document.getElementById('connectionStatus').textContent = 'Verbonden met toestel (' + code + ')';
+                console.log('Socket.IO: received paired event');
             });
             socket.on('disconnect', () => {
                 document.getElementById('connectionStatus').textContent = 'Verbinding verbroken.';
+                console.log('Socket.IO: disconnected');
             });
             socket.on('connect_error', (err) => {
                 document.getElementById('connectionStatus').textContent = 'Socket.io fout: ' + err.message;
+                console.log('Socket.IO: connect_error', err);
             });
             socket.on('user-joined', (id) => {
                 document.getElementById('connectionStatus').textContent = 'Toestel verbonden: ' + id;
+                console.log('Socket.IO: user-joined', id);
             });
             socket.on('permissions-accepted', () => {
                 document.getElementById('remoteControlBox').style.display = 'flex';
+                console.log('Socket.IO: permissions-accepted received');
             });
             socket.on('screen-data', (data) => {
                 // Verwacht base64 PNG/JPEG string
@@ -296,9 +304,11 @@
                 let screenDataDiv = document.getElementById('screenData');
                 screenDataDiv.innerHTML = '';
                 screenDataDiv.appendChild(img);
+                console.log('Socket.IO: screen-data received');
             });
         } catch (err) {
             document.getElementById('connectionStatus').textContent = 'Socket.io fout: ' + err.message;
+            console.log('Socket.IO: error', err);
         }
     }
 

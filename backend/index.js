@@ -1,6 +1,8 @@
 const express = require('express');
 const { ethers } = require('ethers');
 const cors = require('cors');
+const http = require('http');
+const { Server } = require('socket.io');
 
 // Replace with your deployed contract address and ABI
 require('dotenv').config();
@@ -12,8 +14,52 @@ const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
 const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, wallet);
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST'],
+  credentials: true
+}));
 app.use(express.json());
+
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST'],
+    credentials: true
+  }
+});
+
+// Socket.IO events
+io.on('connection', (socket) => {
+  console.log('Socket.IO: client connected:', socket.id);
+  socket.on('join-room', (code) => {
+    socket.join(code);
+    socket.emit('paired');
+    io.to(code).emit('user-joined', socket.id);
+  });
+  socket.on('request-permissions', () => {
+    socket.emit('permissions-accepted');
+  });
+  socket.on('lock-device', (unlockCode) => {
+    io.emit('lock-device', unlockCode);
+  });
+  socket.on('unlock-device', (code) => {
+    io.emit('unlock-device', code);
+  });
+  socket.on('wipe-device', () => {
+    io.emit('wipe-device');
+  });
+  socket.on('request-screenshot', () => {
+    io.emit('request-screenshot');
+  });
+  socket.on('location-update', (locObj) => {
+    io.emit('location-update', locObj);
+  });
+  socket.on('disconnect', () => {
+    console.log('Socket.IO: client disconnected:', socket.id);
+  });
+});
 
 // Register device endpoint
 app.post('/api/register_device', async (req, res) => {
@@ -55,6 +101,6 @@ const request2fa = require('./api/request_2fa');
 app.use('/api/request_2fa', request2fa);
 
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
-  console.log(`Blockchain backend listening on port ${PORT}`);
+server.listen(PORT, () => {
+  console.log(`Backend with Socket.IO listening on port ${PORT}`);
 });
