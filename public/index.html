@@ -86,19 +86,7 @@
             <button id="shareLocationBtn" style="margin-top:10px;background:#1976d2;color:#fff;padding:10px 18px;border:none;border-radius:8px;font-weight:bold;display:flex;align-items:center;"><span class="material-icons" style="vertical-align:middle;margin-right:6px;">share_location</span>Deel met politie</button>
         </div>
     <button id="logoutBtn" style="max-width:260px;margin-top:18px;display:flex;align-items:center;"><span class="material-icons" style="vertical-align:middle;margin-right:6px;">logout</span>Uitloggen</button>
-    <!-- Admin Card -->
-    <div id="adminBox" class="card-block" style="width:340px;">
-        <span style="font-size:1.2em;color:#d32f2f;display:flex;align-items:center;margin-bottom:8px;"><span class="material-icons" style="margin-right:8px;">admin_panel_settings</span>Admin: Accounts beheren</span>
-        <div id="accountList" style="width:100%;margin-bottom:12px;"></div>
-        <form id="addAccountForm" style="width:100%;display:flex;flex-direction:column;align-items:center;">
-            <input type="text" id="newAccountUsername" placeholder="Gebruikersnaam" required style="max-width:180px;">
-            <input type="password" id="newAccountPassword" placeholder="Wachtwoord" required style="max-width:180px;">
-            <button type="submit" style="max-width:180px;margin-top:8px;"><span class="material-icons" style="vertical-align:middle;margin-right:6px;">person_add</span>Account toevoegen</button>
-            <div class="success" id="addAccountSuccess" style="max-width:180px;"></div>
-            <div class="error" id="addAccountError" style="max-width:180px;"></div>
-        </form>
-    </div>
-        <div id="connectionStatus" style="margin-top:12px;font-size:0.95em;"></div>
+    <div id="connectionStatus" style="margin-top:12px;font-size:0.95em;"></div>
     </div>
     </div>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -120,78 +108,8 @@
         localStorage.removeItem('jwtToken');
     }
 
-    // Admin: fetch and render accounts
-    async function fetchAccounts() {
-        try {
-            const res = await fetch(`${BACKEND_API_URL}/admin/accounts`, {
-                headers: { 'Authorization': 'Bearer ' + getJwtToken() }
-            });
-            const data = await res.json();
-            if (data.success && Array.isArray(data.accounts)) {
-                const list = document.getElementById('accountList');
-                list.innerHTML = '';
-                data.accounts.forEach(acc => {
-                    const div = document.createElement('div');
-                    div.style.display = 'flex';
-                    div.style.justifyContent = 'space-between';
-                    div.style.alignItems = 'center';
-                    div.style.marginBottom = '6px';
-                    div.innerHTML = `<span style='color:#fff;'>${acc.username}</span> <button style='background:#d32f2f;color:#fff;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;' onclick='deleteAccount(\"${acc.username}\")'><span class='material-icons' style='font-size:1em;vertical-align:middle;'>delete</span></button>`;
-                    list.appendChild(div);
-                });
-            }
-        } catch (err) {
-            document.getElementById('accountList').innerHTML = '<span style="color:#d32f2f;">Kan accounts niet laden.</span>';
-        }
-    }
-    async function deleteAccount(username) {
-        if (!confirm('Account verwijderen: ' + username + '?')) return;
-        try {
-            const res = await fetch(`${BACKEND_API_URL}/admin/accounts/` + encodeURIComponent(username), {
-                method: 'DELETE',
-                headers: { 'Authorization': 'Bearer ' + getJwtToken() }
-            });
-            const data = await res.json();
-            if (data.success) {
-                fetchAccounts();
-            } else {
-                alert('Verwijderen mislukt.');
-            }
-        } catch (err) {
-            alert('Serverfout bij verwijderen.');
-        }
-    }
-    document.getElementById('addAccountForm').onsubmit = async function(e) {
-        e.preventDefault();
-        const username = document.getElementById('newAccountUsername').value;
-        const password = document.getElementById('newAccountPassword').value;
-        document.getElementById('addAccountSuccess').textContent = '';
-        document.getElementById('addAccountError').textContent = '';
-        try {
-            const res = await fetch(`${BACKEND_API_URL}/admin/accounts`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + getJwtToken()
-                },
-                body: JSON.stringify({ username, password })
-            });
-            const data = await res.json();
-            if (data.success) {
-                document.getElementById('addAccountSuccess').textContent = 'Account toegevoegd!';
-                document.getElementById('addAccountError').textContent = '';
-                document.getElementById('newAccountUsername').value = '';
-                document.getElementById('newAccountPassword').value = '';
-                fetchAccounts();
-            } else {
-                document.getElementById('addAccountError').textContent = data.error || 'Toevoegen mislukt.';
-            }
-        } catch (err) {
-            document.getElementById('addAccountError').textContent = 'Serverfout: ' + err.message;
-        }
-    };
-    // Fetch accounts on page load
-    window.addEventListener('DOMContentLoaded', fetchAccounts);
+    // ...member-only code...
+    // ...existing code...
     // Utility: show loading spinner on buttons
     function setButtonLoading(btn, loading) {
         if (loading) {
@@ -275,33 +193,199 @@
             document.getElementById('remoteControlBox').style.display = 'none';
         }
         // Hide pairing form by default, show when addDeviceBtn is clicked
-        document.getElementById('addDeviceBtn').onclick = function() {
-            document.getElementById('pairForm').style.display = 'flex';
-            document.getElementById('pairSuccess').textContent = '';
-            document.getElementById('pairError').textContent = '';
-            document.getElementById('pairCode').value = '';
-        };
+        var addDeviceBtn = document.getElementById('addDeviceBtn');
+        if (addDeviceBtn) {
+            addDeviceBtn.onclick = function() {
+                document.getElementById('pairForm').style.display = 'flex';
+                document.getElementById('pairSuccess').textContent = '';
+                document.getElementById('pairError').textContent = '';
+                document.getElementById('pairCode').value = '';
+            };
+        }
 
-        // Move all event handler assignments here
-        document.getElementById('loginForm').onsubmit = loginFormHandler;
-        document.getElementById('totpSetupNextBtn').onclick = totpSetupNextHandler;
-        document.getElementById('totpForm').onsubmit = totpFormHandler;
-        document.getElementById('addAccountForm').onsubmit = addAccountFormHandler;
-        document.getElementById('deviceSelector').onchange = deviceSelectorHandler;
-        document.getElementById('removeDeviceBtn').onclick = removeDeviceBtnHandler;
-        document.getElementById('logoutBtn').onclick = logoutBtnHandler;
-        document.getElementById('pairForm').onsubmit = pairFormHandler;
+        var loginForm = document.getElementById('loginForm');
+        if (loginForm) loginForm.onsubmit = loginFormHandler;
+        var totpSetupNextBtn = document.getElementById('totpSetupNextBtn');
+        if (totpSetupNextBtn) totpSetupNextBtn.onclick = totpSetupNextHandler;
+        var totpForm = document.getElementById('totpForm');
+        if (totpForm) totpForm.onsubmit = totpFormHandler;
+    // No admin event handlers in member dashboard
+        var deviceSelector = document.getElementById('deviceSelector');
+        if (deviceSelector) deviceSelector.onchange = deviceSelectorHandler;
+        var removeDeviceBtn = document.getElementById('removeDeviceBtn');
+        if (removeDeviceBtn) removeDeviceBtn.onclick = removeDeviceBtnHandler;
+        var logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) logoutBtn.onclick = logoutBtnHandler;
+        var pairForm = document.getElementById('pairForm');
+        if (pairForm) pairForm.onsubmit = pairFormHandler;
     };
 
-    // Move handler functions out for assignment
-    function loginFormHandler(e) { /* ...existing code... */ }
-    function totpSetupNextHandler(e) { /* ...existing code... */ }
-    function totpFormHandler(e) { /* ...existing code... */ }
-    function addAccountFormHandler(e) { /* ...existing code... */ }
-    function deviceSelectorHandler(e) { /* ...existing code... */ }
-    function removeDeviceBtnHandler(e) { /* ...existing code... */ }
-    function logoutBtnHandler(e) { /* ...existing code... */ }
-    function pairFormHandler(e) { /* ...existing code... */ }
+    // Event handler functions
+    let pendingLogin = null;
+    function loginFormHandler(e) {
+        setButtonLoading(document.querySelector('#loginForm button'), true);
+        e.preventDefault();
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        document.getElementById('errorMsg').textContent = '';
+        if (username && password) {
+            pendingLogin = { username, password };
+            // Check if 2FA is already set up for this user
+            fetch(`${BACKEND_API_URL}/totp_2fa/status`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username })
+            })
+            .then(res => res.json())
+            .then(data => {
+                setButtonLoading(document.querySelector('#loginForm button'), false);
+                if (data.success && data.has2fa) {
+                    // 2FA is already set up, go straight to code input
+                    document.getElementById('loginForm').style.display = 'none';
+                    document.getElementById('totpSetupForm').style.display = 'none';
+                    document.getElementById('totpForm').style.display = 'flex';
+                } else if (data.success && data.qr) {
+                    // 2FA not set up, show QR setup
+                    document.getElementById('loginForm').style.display = 'none';
+                    document.getElementById('totpSetupForm').style.display = 'flex';
+                    document.getElementById('totpQrBox').innerHTML = `<img src='${data.qr}' style='max-width:180px;border-radius:8px;margin-bottom:8px;'><div style='color:#fff;font-size:0.95em;'>Scan deze QR met Google Authenticator</div>`;
+                } else {
+                    document.getElementById('errorMsg').textContent = 'Kon 2FA status niet ophalen.';
+                }
+            })
+            .catch(err => {
+                setButtonLoading(document.querySelector('#loginForm button'), false);
+                document.getElementById('errorMsg').textContent = 'Serverfout: ' + err.message;
+            });
+        } else {
+            setButtonLoading(document.querySelector('#loginForm button'), false);
+            document.getElementById('errorMsg').textContent = 'Ongeldige gegevens';
+        }
+    }
+
+    function totpSetupNextHandler(e) {
+        document.getElementById('totpSetupForm').style.display = 'none';
+        document.getElementById('totpForm').style.display = 'flex';
+    }
+
+    function totpFormHandler(e) {
+        setButtonLoading(document.querySelector('#totpForm button'), true);
+        e.preventDefault();
+        const code = document.getElementById('totpCode').value;
+        document.getElementById('totpError').textContent = '';
+        if (!code || code.length !== 6) {
+            document.getElementById('totpError').textContent = 'Voer een geldige 6-cijferige code in.';
+            setButtonLoading(document.querySelector('#totpForm button'), false);
+            return;
+        }
+        fetch(`${BACKEND_API_URL}/totp_2fa/verify`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: pendingLogin.username, token: code })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                setButtonLoading(document.querySelector('#totpForm button'), false);
+                setCookie('loggedIn', 'true', 7);
+                document.getElementById('totpError').textContent = '';
+                if (data.token) setJwtToken(data.token);
+                // Redirect to admin dashboard if username is 'admin'
+                if (pendingLogin.username === 'admin') {
+                    window.location.href = 'admin.html';
+                    return;
+                }
+                // Otherwise, show member dashboard
+                showLogout();
+                document.getElementById('pairForm').style.display = 'flex';
+                document.getElementById('remoteControlBox').style.display = 'none';
+                checkConnection();
+                fetchAccounts();
+            } else {
+                setButtonLoading(document.querySelector('#totpForm button'), false);
+                document.getElementById('totpError').textContent = 'Ongeldige code.';
+            }
+        })
+        .catch(err => {
+            setButtonLoading(document.querySelector('#totpForm button'), false);
+            document.getElementById('totpError').textContent = 'Serverfout: ' + err.message;
+        });
+    }
+
+    // ...member-only code...
+
+    function deviceSelectorHandler(e) {
+        const code = e.target.value;
+        joinDeviceRoom(code);
+    }
+
+    function removeDeviceBtnHandler(e) {
+        let pairedDevices = getPairedDevices();
+        const selector = document.getElementById('deviceSelector');
+        const idx = selector.selectedIndex;
+        if (idx >= 0) {
+            pairedDevices.splice(idx, 1);
+            setPairedDevices(pairedDevices);
+            populateDeviceSelector(pairedDevices);
+            if (pairedDevices.length > 0) {
+                joinDeviceRoom(pairedDevices[0].code);
+            } else {
+                document.getElementById('deviceListBox').style.display = 'none';
+                document.getElementById('remoteControlBox').style.display = 'none';
+                document.getElementById('pairForm').style.display = 'flex';
+            }
+        }
+    }
+
+    function logoutBtnHandler(e) {
+        eraseCookie('loggedIn');
+        eraseJwtToken();
+        showLogin();
+    }
+
+    function pairFormHandler(e) {
+        setButtonLoading(document.querySelector('#pairForm button'), true);
+        e.preventDefault();
+        const code = document.getElementById('pairCode').value;
+        document.getElementById('pairSuccess').textContent = '';
+        document.getElementById('pairError').textContent = '';
+        if (!code || code.length !== 6) {
+            document.getElementById('pairError').textContent = 'Voer een geldige 6-cijferige code in.';
+            setButtonLoading(document.querySelector('#pairForm button'), false);
+            return;
+        }
+        fetch(`${BACKEND_API_URL}/pair_device`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                setButtonLoading(document.querySelector('#pairForm button'), false);
+                document.getElementById('pairSuccess').textContent = 'Toestel gekoppeld!';
+                let pairedDevices = getPairedDevices();
+                let name = prompt('Naam voor toestel?', 'Android ' + (pairedDevices.length + 1));
+                pairedDevices.push({ code, name });
+                setPairedDevices(pairedDevices);
+                populateDeviceSelector(pairedDevices);
+                document.getElementById('pairForm').style.display = 'none';
+                document.getElementById('deviceListBox').style.display = 'flex';
+                document.getElementById('remoteControlBox').style.display = 'flex';
+                joinDeviceRoom(code);
+                document.getElementById('unlockSection').style.display = 'none';
+                document.getElementById('unlockCodeInput').value = '';
+                document.getElementById('unlockCodeInput').placeholder = 'Ontgrendelcode';
+            } else {
+                setButtonLoading(document.querySelector('#pairForm button'), false);
+                document.getElementById('pairError').textContent = data.error || 'Koppeling mislukt.';
+            }
+        })
+        .catch(err => {
+            setButtonLoading(document.querySelector('#pairForm button'), false);
+            document.getElementById('pairError').textContent = 'Serverfout: ' + err.message;
+        });
+    }
 
     function populateDeviceSelector(devices) {
         const selector = document.getElementById('deviceSelector');
@@ -316,7 +400,7 @@
 
     // Login form handler
     // Eerst login, dan 2FA
-    let pendingLogin = null;
+    // pendingLogin is now declared above with the event handler functions
     document.getElementById('loginForm').onsubmit = async function(e) {
         setButtonLoading(document.querySelector('#loginForm button'), true);
         e.preventDefault();
@@ -383,6 +467,8 @@
                 document.getElementById('pairForm').style.display = 'flex';
                 document.getElementById('remoteControlBox').style.display = 'none';
                 checkConnection();
+                // Only fetch accounts after login and JWT
+                fetchAccounts();
             } else {
                 setButtonLoading(document.querySelector('#totpForm button'), false);
                 document.getElementById('totpError').textContent = 'Ongeldige code.';
@@ -393,218 +479,6 @@
         }
     };
 
-    document.getElementById('twofaForm').onsubmit = async function(e) {
-        setButtonLoading(document.querySelector('#twofaForm button'), true);
-        e.preventDefault();
-        const code = document.getElementById('twofaCode').value;
-        document.getElementById('twofaError').textContent = '';
-        if (!code || code.length !== 6) {
-            document.getElementById('twofaError').textContent = 'Voer een geldige 6-cijferige code in.';
-            return;
-        }
-        try {
-            const res = await fetch(`${BACKEND_API_URL}/request_2fa/verify`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: 'arjan@radioredarrow.nl', code })
-            });
-            const data = await res.json();
-            if (data.success) {
-                setButtonLoading(document.querySelector('#twofaForm button'), false);
-                setCookie('loggedIn', 'true', 7); // 7 dagen ingelogd
-                document.getElementById('twofaError').textContent = '';
-                showLogout();
-                // Show pairing form after 2FA
-                document.getElementById('pairForm').style.display = 'flex';
-                document.getElementById('remoteControlBox').style.display = 'none';
-                checkConnection();
-            } else {
-                setButtonLoading(document.querySelector('#twofaForm button'), false);
-                document.getElementById('twofaError').textContent = 'Ongeldige code.';
-            }
-        } catch (err) {
-            setButtonLoading(document.querySelector('#twofaForm button'), false);
-            document.getElementById('twofaError').textContent = 'Serverfout: ' + err.message;
-        }
-    };
-
-    // Logout button handler
-    document.getElementById('logoutBtn').onclick = function() {
-    eraseCookie('loggedIn');
-    eraseJwtToken();
-    showLogin();
-    // Do NOT clear paired devices here
-    };
-
-    // Device pairing logic
-    document.getElementById('pairForm').onsubmit = async function(e) {
-        setButtonLoading(document.querySelector('#pairForm button'), true);
-        e.preventDefault();
-        const code = document.getElementById('pairCode').value;
-        document.getElementById('pairSuccess').textContent = '';
-        document.getElementById('pairError').textContent = '';
-        if (!code || code.length !== 6) {
-            document.getElementById('pairError').textContent = 'Voer een geldige 6-cijferige code in.';
-            return;
-        }
-        try {
-            const res = await fetch(`${BACKEND_API_URL}/pair_device`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ code })
-            });
-            const data = await res.json();
-            if (data.success) {
-                setButtonLoading(document.querySelector('#pairForm button'), false);
-                document.getElementById('pairSuccess').textContent = 'Toestel gekoppeld!';
-                let pairedDevices = getPairedDevices();
-                // Ask for device name
-                let name = prompt('Naam voor toestel?', 'Android ' + (pairedDevices.length + 1));
-                pairedDevices.push({ code, name });
-                setPairedDevices(pairedDevices);
-                populateDeviceSelector(pairedDevices);
-                document.getElementById('pairForm').style.display = 'none';
-                document.getElementById('deviceListBox').style.display = 'flex';
-                document.getElementById('remoteControlBox').style.display = 'flex';
-                joinDeviceRoom(code);
-                // Hide unlock section and clear code after pairing
-                document.getElementById('unlockSection').style.display = 'none';
-                document.getElementById('unlockCodeInput').value = '';
-                document.getElementById('unlockCodeInput').placeholder = 'Ontgrendelcode';
-            } else {
-                setButtonLoading(document.querySelector('#pairForm button'), false);
-                document.getElementById('pairError').textContent = data.error || 'Koppeling mislukt.';
-            }
-        } catch (err) {
-            setButtonLoading(document.querySelector('#pairForm button'), false);
-            document.getElementById('pairError').textContent = 'Serverfout: ' + err.message;
-        }
-    };
-
-    document.getElementById('deviceSelector').onchange = function() {
-        const code = this.value;
-        joinDeviceRoom(code);
-    };
-
-    document.getElementById('removeDeviceBtn').onclick = function() {
-        let pairedDevices = getPairedDevices();
-        const selector = document.getElementById('deviceSelector');
-        const idx = selector.selectedIndex;
-        if (idx >= 0) {
-            pairedDevices.splice(idx, 1);
-            setPairedDevices(pairedDevices);
-            populateDeviceSelector(pairedDevices);
-            if (pairedDevices.length > 0) {
-                joinDeviceRoom(pairedDevices[0].code);
-            } else {
-                document.getElementById('deviceListBox').style.display = 'none';
-                document.getElementById('remoteControlBox').style.display = 'none';
-                document.getElementById('pairForm').style.display = 'flex';
-            }
-        }
-    };
-
-    // Socket.io connection
-    let socket = null;
-    // Use your Render backend websocket address below (replace with your actual Render URL)
-    let socketServerUrl = "wss://tracker-mobile-backend.onrender.com";
-
-    // Locatie op kaart en delen
-    let lastLocation = null;
-    function setupLocationListeners() {
-        socket.on('location-update', (locObj) => {
-            if (!locObj || !locObj.lat || !locObj.lon) return;
-            lastLocation = locObj;
-            document.getElementById('locationText').textContent = `Lat: ${locObj.lat}, Lon: ${locObj.lon}`;
-            // Initialize map if not already
-            if (!leafletMap) {
-                leafletMap = L.map('map').setView([locObj.lat, locObj.lon], 15);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '© OpenStreetMap contributors'
-                }).addTo(leafletMap);
-                leafletMarker = L.marker([locObj.lat, locObj.lon]).addTo(leafletMap);
-            } else {
-                leafletMap.setView([locObj.lat, locObj.lon], 15);
-                if (leafletMarker) {
-                    leafletMarker.setLatLng([locObj.lat, locObj.lon]);
-                } else {
-                    leafletMarker = L.marker([locObj.lat, locObj.lon]).addTo(leafletMap);
-                }
-            }
-        });
-        document.getElementById('shareLocationBtn').onclick = function() {
-            if (lastLocation) {
-                const url = `https://maps.google.com/?q=${lastLocation.lat},${lastLocation.lon}`;
-                navigator.clipboard.writeText(url);
-                alert('Locatie is gekopieerd en kan gedeeld worden met de politie!');
-            }
-        };
-    }
-
-    function joinDeviceRoom(code) {
-        if (!window.io) return;
-        if (socket) socket.disconnect();
-        try {
-            socket = io(socketServerUrl, { transports: ['websocket'] });
-            console.log('Socket.IO: created socket, joining room', code);
-            socket.on('connect', () => {
-                document.getElementById('connectionStatus').textContent = 'Verbinding maken...';
-                document.getElementById('deviceOfflineMsg').style.display = 'none';
-                document.getElementById('powerOnBtn').disabled = true;
-                console.log('Socket.IO: connected, emitting join-room', code);
-                socket.emit('join-room', code);
-                requestPermissionsOnApp();
-                setupLocationListeners();
-            });
-            socket.on('paired', () => {
-                document.getElementById('connectionStatus').textContent = 'Verbonden met toestel (' + code + ')';
-                document.getElementById('deviceOfflineMsg').style.display = 'none';
-                document.getElementById('powerOnBtn').disabled = true;
-                console.log('Socket.IO: received paired event');
-            });
-            socket.on('disconnect', () => {
-                document.getElementById('connectionStatus').textContent = 'Telefoon is uit.';
-                document.getElementById('deviceOfflineMsg').style.display = 'block';
-                document.getElementById('powerOnBtn').disabled = true;
-                console.log('Socket.IO: disconnected');
-            });
-            socket.on('connect_error', (err) => {
-                document.getElementById('connectionStatus').textContent = 'Socket.io fout: ' + err.message;
-                document.getElementById('deviceOfflineMsg').style.display = 'block';
-                document.getElementById('powerOnBtn').disabled = true;
-                console.log('Socket.IO: connect_error', err);
-            });
-            socket.on('user-joined', (id) => {
-                document.getElementById('connectionStatus').textContent = 'Toestel verbonden: ' + id;
-                document.getElementById('deviceOfflineMsg').style.display = 'none';
-                document.getElementById('powerOnBtn').disabled = true;
-                console.log('Socket.IO: user-joined', id);
-            });
-            socket.on('permissions-accepted', () => {
-                document.getElementById('remoteControlBox').style.display = 'flex';
-                document.getElementById('deviceOfflineMsg').style.display = 'none';
-                document.getElementById('powerOnBtn').disabled = true;
-                console.log('Socket.IO: permissions-accepted received');
-            });
-            socket.on('screen-data', (data) => {
-                // Verwacht base64 PNG/JPEG string
-                let img = document.createElement('img');
-                img.src = 'data:image/png;base64,' + data;
-                img.style.maxWidth = '320px';
-                img.style.borderRadius = '8px';
-                img.style.marginTop = '8px';
-                let screenDataDiv = document.getElementById('screenData');
-                screenDataDiv.innerHTML = '';
-                screenDataDiv.appendChild(img);
-                console.log('Socket.IO: screen-data received');
-            });
-        } catch (err) {
-            document.getElementById('connectionStatus').textContent = 'Socket.io fout: ' + err.message;
-            document.getElementById('deviceOfflineMsg').style.display = 'block';
-            document.getElementById('powerOnBtn').disabled = true;
-            console.log('Socket.IO: error', err);
-        }
-    }
 
     // Request permissions on app from website
     function requestPermissionsOnApp() {

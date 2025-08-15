@@ -46,4 +46,25 @@ router.post('/verify', (req, res) => {
   }
 });
 
+// Check 2FA status and return QR if not set up
+router.post('/status', async (req, res) => {
+  const { username } = req.body;
+  if (!username) return res.status(400).json({ success: false, error: 'Username required' });
+  if (userSecrets[username]) {
+    // 2FA is set up
+    return res.json({ success: true, has2fa: true });
+  } else {
+    // Not set up, generate QR
+    const secret = speakeasy.generateSecret({ name: `TrackerMobile (${username})` });
+    userSecrets[username] = secret.base32;
+    const otpauthUrl = secret.otpauth_url;
+    try {
+      const qr = await qrcode.toDataURL(otpauthUrl);
+      return res.json({ success: true, has2fa: false, qr });
+    } catch (err) {
+      return res.status(500).json({ success: false, error: err.message });
+    }
+  }
+});
+
 module.exports = router;
