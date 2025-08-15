@@ -1,13 +1,18 @@
 const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const router = express.Router();
 
 const db = new sqlite3.Database('locations.db');
 
-// Create default admin account if not exists
+const JWT_SECRET = process.env.JWT_SECRET || 'tracker2025supersecret';
+
+// Create default admin account if not exists (hashed password)
 db.get('SELECT * FROM accounts WHERE username = ?', ['admin'], (err, row) => {
     if (!row) {
-        db.run('INSERT INTO accounts (username, password, created_at) VALUES (?, ?, ?)', ['admin', 'admin2025', new Date().toISOString()]);
+        const hash = bcrypt.hashSync('admin2025', 10);
+        db.run('INSERT INTO accounts (username, password, created_at) VALUES (?, ?, ?)', ['admin', hash, new Date().toISOString()]);
         console.log('Default admin account aangemaakt: admin / admin2025');
     }
 });
@@ -27,39 +32,48 @@ router.get('/', (req, res) => {
     });
 });
 
-// Add new account
-router.post('/', (req, res) => {
+// Add new account (hashed password)
+router.post('/', requireAdmin, (req, res) => {
     const { username, password } = req.body;
     if (!username || !password) return res.json({ success: false, error: 'Ongeldige gegevens' });
-    db.run('INSERT INTO accounts (username, password, created_at) VALUES (?, ?, ?)', [username, password, new Date().toISOString()], function(err) {
+    const hash = bcrypt.hashSync(password, 10);
+    db.run('INSERT INTO accounts (username, password, created_at) VALUES (?, ?, ?)', [username, hash, new Date().toISOString()], function(err) {
         if (err) return res.json({ success: false, error: 'Gebruikersnaam bestaat al of DB error' });
         res.json({ success: true });
     });
 });
 
 
-// Simple token for demo (replace with JWT for production)
-const ADMIN_TOKEN = 'admin2025token';
-
-// Admin login endpoint
+// Admin login endpoint (JWT)
 router.post('/login', (req, res) => {
     const { username, password } = req.body;
-    db.get('SELECT * FROM accounts WHERE username = ? AND password = ?', [username, password], (err, row) => {
+    db.get('SELECT * FROM accounts WHERE username = ?', [username], (err, row) => {
         if (err || !row) return res.json({ success: false, error: 'Ongeldige login' });
+        if (!bcrypt.compareSync(password, row.password)) return res.json({ success: false, error: 'Ongeldige login' });
         if (username === 'admin') {
-            return res.json({ success: true, token: ADMIN_TOKEN });
+            const token = jwt.sign({ username: 'admin', role: 'admin' }, JWT_SECRET, { expiresIn: '2h' });
+            return res.json({ success: true, token });
         }
         return res.json({ success: false, error: 'Geen admin account' });
     });
 });
 
-// Auth middleware for admin endpoints
+// Auth middleware for admin endpoints (JWT)
 function requireAdmin(req, res, next) {
     const auth = req.headers['authorization'];
-    if (!auth || auth !== 'Bearer ' + ADMIN_TOKEN) {
+    if (!auth || !auth.startsWith('Bearer ')) {
         return res.status(401).json({ success: false, error: 'Niet geautoriseerd' });
     }
-    next();
+    const token = auth.replace('Bearer ', '');
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        if (decoded.username !== 'admin' || decoded.role !== 'admin') {
+            return res.status(401).json({ success: false, error: 'Niet geautoriseerd' });
+        }
+        next();
+    } catch (err) {
+        return res.status(401).json({ success: false, error: 'Token ongeldig' });
+    }
 }
 
 // List all accounts (admin only)
