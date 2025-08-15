@@ -6,12 +6,22 @@ const { Server } = require('socket.io');
 
 // Replace with your deployed contract address and ABI
 require('dotenv').config();
-const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS || 'YOUR_CONTRACT_ADDRESS';
-const CONTRACT_ABI = require('./DevicePairingABI.json');
-
-const provider = new ethers.JsonRpcProvider(process.env.RPC_URL || 'https://rpc-mumbai.maticvigil.com'); // Polygon Mumbai testnet
-const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
-const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, wallet);
+let contract = null;
+let blockchainEnabled = false;
+try {
+  const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS || 'YOUR_CONTRACT_ADDRESS';
+  const CONTRACT_ABI = require('./DevicePairingABI.json');
+  const provider = new ethers.JsonRpcProvider(process.env.RPC_URL || 'https://rpc-mumbai.maticvigil.com');
+  if (process.env.PRIVATE_KEY && /^0x[0-9a-fA-F]{64}$/.test(process.env.PRIVATE_KEY)) {
+    const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
+    contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, wallet);
+    blockchainEnabled = true;
+  } else {
+    console.warn('Blockchain features disabled: missing or invalid PRIVATE_KEY in .env');
+  }
+} catch (err) {
+  console.warn('Blockchain features disabled:', err.message);
+}
 
 const app = express();
 app.use(cors({
@@ -69,6 +79,7 @@ app.get('/api/check_connection', (req, res) => {
 
 // Register device endpoint
 app.post('/api/register_device', async (req, res) => {
+  if (!blockchainEnabled) return res.json({ success: false, error: 'Blockchain disabled' });
   const { code } = req.body;
   try {
     const tx = await contract.registerDevice(code);
@@ -81,6 +92,7 @@ app.post('/api/register_device', async (req, res) => {
 
 // Pair device endpoint
 app.post('/api/pair_device', async (req, res) => {
+  if (!blockchainEnabled) return res.json({ success: false, error: 'Blockchain disabled' });
   const { code } = req.body;
   try {
     const tx = await contract.pairDevice(code);
@@ -94,6 +106,7 @@ app.post('/api/pair_device', async (req, res) => {
 
 // Check pairing status
 app.get('/api/is_paired/:code', async (req, res) => {
+  if (!blockchainEnabled) return res.json({ paired: false, error: 'Blockchain disabled' });
   const code = req.params.code;
   try {
     const paired = await contract.isPaired(code);
