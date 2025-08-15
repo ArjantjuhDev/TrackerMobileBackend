@@ -61,6 +61,12 @@ io.on('connection', (socket) => {
   });
 });
 
+
+// Health check endpoint for Render
+app.get('/api/check_connection', (req, res) => {
+  res.json({ connected: true });
+});
+
 // Register device endpoint
 app.post('/api/register_device', async (req, res) => {
   const { code } = req.body;
