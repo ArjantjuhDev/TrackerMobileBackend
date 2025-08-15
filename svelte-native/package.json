@@ -1,0 +1,11 @@
+{
+  "name": "tracker-mobile",
+  "main": "App.svelte",
+  "scripts": {
+    "start": "ns run android"
+  },
+  "dependencies": {
+    "@nativescript/core": "^8.0.0",
+    "svelte": "^3.0.0"
+  }
+}
