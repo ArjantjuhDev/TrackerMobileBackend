@@ -36,9 +36,13 @@
             <div class="error" id="errorMsg" style="max-width:260px;"></div>
             <button type="submit" style="max-width:260px;">Inloggen</button>
         </form>
-        <form id="twofaForm" style="width:100%;display:none;flex-direction:column;align-items:center;margin-top:18px;">
-            <input type="text" id="twofaCode" placeholder="2FA code (6 cijfers)" maxlength="6" style="max-width:180px;">
-            <div class="error" id="twofaError" style="max-width:180px;"></div>
+        <form id="totpSetupForm" style="width:100%;display:none;flex-direction:column;align-items:center;margin-top:18px;">
+            <div id="totpQrBox" style="margin-bottom:12px;"></div>
+            <button type="button" id="totpSetupNextBtn" style="max-width:180px;">QR gescand, ga verder</button>
+        </form>
+        <form id="totpForm" style="width:100%;display:none;flex-direction:column;align-items:center;margin-top:18px;">
+            <input type="text" id="totpCode" placeholder="Google Authenticator code" maxlength="6" style="max-width:180px;">
+            <div class="error" id="totpError" style="max-width:180px;"></div>
             <button type="submit" style="max-width:180px;">Verifiëren</button>
         </form>
     </div>
@@ -102,10 +106,13 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
+    // === CONFIGUREER HIER DE BACKEND API URL ===
+    const BACKEND_API_URL = 'https://tracker-mobile-backend.onrender.com/api';
+
     // Admin: fetch and render accounts
     async function fetchAccounts() {
         try {
-            const res = await fetch('/api/admin/accounts');
+            const res = await fetch(`${BACKEND_API_URL}/admin/accounts`);
             const data = await res.json();
             if (data.success && Array.isArray(data.accounts)) {
                 const list = document.getElementById('accountList');
@@ -116,7 +123,7 @@
                     div.style.justifyContent = 'space-between';
                     div.style.alignItems = 'center';
                     div.style.marginBottom = '6px';
-                    div.innerHTML = `<span style='color:#fff;'>${acc.username}</span> <button style='background:#d32f2f;color:#fff;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;' onclick='deleteAccount("${acc.username}")'><span class='material-icons' style='font-size:1em;vertical-align:middle;'>delete</span></button>`;
+                    div.innerHTML = `<span style='color:#fff;'>${acc.username}</span> <button style='background:#d32f2f;color:#fff;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;' onclick='deleteAccount(\"${acc.username}\")'><span class='material-icons' style='font-size:1em;vertical-align:middle;'>delete</span></button>`;
                     list.appendChild(div);
                 });
             }
@@ -127,7 +134,7 @@
     async function deleteAccount(username) {
         if (!confirm('Account verwijderen: ' + username + '?')) return;
         try {
-            const res = await fetch('/api/admin/accounts/' + encodeURIComponent(username), { method: 'DELETE' });
+            const res = await fetch(`${BACKEND_API_URL}/admin/accounts/` + encodeURIComponent(username), { method: 'DELETE' });
             const data = await res.json();
             if (data.success) {
                 fetchAccounts();
@@ -145,7 +152,7 @@
         document.getElementById('addAccountSuccess').textContent = '';
         document.getElementById('addAccountError').textContent = '';
         try {
-            const res = await fetch('/api/admin/accounts', {
+            const res = await fetch(`${BACKEND_API_URL}/admin/accounts`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, password })
@@ -277,24 +284,25 @@
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
         document.getElementById('errorMsg').textContent = '';
-    // Simpele check, vervang dit met echte authenticatie!
-    if (username && password) {
-            // Vraag 2FA code aan
+        if (username && password) {
+            // Simpele demo: sla username op en ga naar TOTP setup
+            pendingLogin = { username, password };
+            // Vraag TOTP QR code aan
             try {
-                const res = await fetch('/api/request_2fa', {
+                const res = await fetch(`${BACKEND_API_URL}/totp_2fa/register`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: 'arjan@radioredarrow.nl' })
+                    body: JSON.stringify({ username })
                 });
                 const data = await res.json();
-                if (data.success) {
+                if (data.success && data.qr) {
                     setButtonLoading(document.querySelector('#loginForm button'), false);
-                    pendingLogin = { username, password };
                     document.getElementById('loginForm').style.display = 'none';
-                    document.getElementById('twofaForm').style.display = 'flex';
+                    document.getElementById('totpSetupForm').style.display = 'flex';
+                    document.getElementById('totpQrBox').innerHTML = `<img src='${data.qr}' style='max-width:180px;border-radius:8px;margin-bottom:8px;'><div style='color:#fff;font-size:0.95em;'>Scan deze QR met Google Authenticator</div>`;
                 } else {
                     setButtonLoading(document.querySelector('#loginForm button'), false);
-                    document.getElementById('errorMsg').textContent = '2FA e-mail kon niet worden verzonden.';
+                    document.getElementById('errorMsg').textContent = 'Kon QR code niet genereren.';
                 }
             } catch (err) {
                 setButtonLoading(document.querySelector('#loginForm button'), false);
@@ -303,6 +311,44 @@
         } else {
             setButtonLoading(document.querySelector('#loginForm button'), false);
             document.getElementById('errorMsg').textContent = 'Ongeldige gegevens';
+        }
+    };
+    document.getElementById('totpSetupNextBtn').onclick = function() {
+        document.getElementById('totpSetupForm').style.display = 'none';
+        document.getElementById('totpForm').style.display = 'flex';
+    };
+    document.getElementById('totpForm').onsubmit = async function(e) {
+        setButtonLoading(document.querySelector('#totpForm button'), true);
+        e.preventDefault();
+        const code = document.getElementById('totpCode').value;
+        document.getElementById('totpError').textContent = '';
+        if (!code || code.length !== 6) {
+            document.getElementById('totpError').textContent = 'Voer een geldige 6-cijferige code in.';
+            setButtonLoading(document.querySelector('#totpForm button'), false);
+            return;
+        }
+        try {
+            const res = await fetch(`${BACKEND_API_URL}/totp_2fa/verify`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: pendingLogin.username, token: code })
+            });
+            const data = await res.json();
+            if (data.success) {
+                setButtonLoading(document.querySelector('#totpForm button'), false);
+                setCookie('loggedIn', 'true', 7); // 7 dagen ingelogd
+                document.getElementById('totpError').textContent = '';
+                showLogout();
+                document.getElementById('pairForm').style.display = 'flex';
+                document.getElementById('remoteControlBox').style.display = 'none';
+                checkConnection();
+            } else {
+                setButtonLoading(document.querySelector('#totpForm button'), false);
+                document.getElementById('totpError').textContent = 'Ongeldige code.';
+            }
+        } catch (err) {
+            setButtonLoading(document.querySelector('#totpForm button'), false);
+            document.getElementById('totpError').textContent = 'Serverfout: ' + err.message;
         }
     };
 
@@ -316,7 +362,7 @@
             return;
         }
         try {
-            const res = await fetch('/api/request_2fa/verify', {
+            const res = await fetch(`${BACKEND_API_URL}/request_2fa/verify`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: 'arjan@radioredarrow.nl', code })
@@ -360,7 +406,7 @@
             return;
         }
         try {
-            const res = await fetch('/api/pair_device', {
+            const res = await fetch(`${BACKEND_API_URL}/pair_device`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ code })
@@ -554,7 +600,7 @@
     // Check backend connection
     async function checkConnection() {
         try {
-            const res = await fetch('/api/check_connection');
+            const res = await fetch(`${BACKEND_API_URL}/check_connection`);
             const data = await res.json();
             if (data.connected) {
                 document.getElementById('connectionStatus').textContent = 'Backend verbinding OK.';

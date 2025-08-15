@@ -129,6 +129,8 @@ app.get('/api/is_paired/:code', async (req, res) => {
 
 const request2fa = require('./api/request_2fa');
 app.use('/api/request_2fa', request2fa);
+const totp2fa = require('./api/totp_2fa');
+app.use('/api/totp_2fa', totp2fa);
 
 const adminAccounts = require('./api/admin_accounts');
 app.use('/api/admin/accounts', adminAccounts);
