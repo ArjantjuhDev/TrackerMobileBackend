@@ -34,6 +34,7 @@ router.post('/', async (req, res) => {
     });
     res.json({ success: true });
   } catch (err) {
+    console.error('2FA email send error:', err);
     res.status(500).json({ success: false, error: err.message });
   }
 });
