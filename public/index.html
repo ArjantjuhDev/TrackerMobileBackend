@@ -1,324 +1,188 @@
+
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8">
-  <title>Login TrackerMobile</title>
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <style>
-    body { font-family: 'Inter', Arial, sans-serif; background: #181a20; color: #e0e0e0; margin: 0; }
-    .login-box { background: #23263a; padding: 40px 32px; margin: 80px auto; width: 340px; border-radius: 16px; box-shadow: 0 4px 24px #0008; border: 1px solid #2c2f3c; animation: fadeIn 0.7s; display: flex; flex-direction: column; align-items: center; }
-    h2 { text-align: center; color: #fff; text-shadow: 0 2px 8px #0006; font-size: 2em; margin-bottom: 18px; }
-    input[type=text], input[type=password], input[type=number] { width: 100%; padding: 12px; margin: 10px 0 20px; border: 1px solid #444; border-radius: 8px; background: #181a20; color: #e0e0e0; font-size: 1em; transition: border 0.2s; }
-    input:focus { border: 1.5px solid #1976d2; background: #23263a; }
-    button { width: 100%; padding: 12px; background: linear-gradient(90deg,#1976d2,#0d47a1); color: #fff; border: none; border-radius: 8px; font-size: 1.1em; font-weight: bold; box-shadow: 0 2px 12px #0004; transition: background 0.2s, transform 0.2s; }
-    button:hover { filter: brightness(1.15); transform: translateY(-2px); }
-    .error { color: #d32f2f; text-align: center; margin-bottom: 12px; font-weight: bold; font-size: 1em; }
-    .success { color: #388e3c; text-align: center; margin-bottom: 12px; font-weight: bold; font-size: 1em; }
-    @media (max-width: 500px) { .login-box { width: 98vw; padding: 24px 8px; margin: 30px auto; } }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-  </style>
+	<meta charset="UTF-8">
+	<title>Login TrackerMobile</title>
+	<style>
+		body { font-family: 'Inter', Arial, sans-serif; background: #181a20; color: #e0e0e0; margin: 0; }
+		.login-box { background: #23263a; padding: 40px 32px; margin: 80px auto; width: 340px; border-radius: 16px; box-shadow: 0 4px 24px #0008; border: 1px solid #2c2f3c; animation: fadeIn 0.7s; display: flex; flex-direction: column; align-items: center; }
+		h2 { text-align: center; color: #fff; text-shadow: 0 2px 8px #0006; font-size: 2em; margin-bottom: 18px; }
+		input[type=text], input[type=password], input[type=number] { width: 100%; padding: 12px; margin: 10px 0 20px; border: 1px solid #444; border-radius: 8px; background: #181a20; color: #e0e0e0; font-size: 1em; transition: border 0.2s; }
+		input:focus { border: 1.5px solid #1976d2; background: #23263a; }
+		button { width: 100%; padding: 12px; background: linear-gradient(90deg,#1976d2,#0d47a1); color: #fff; border: none; border-radius: 8px; font-size: 1.1em; font-weight: bold; box-shadow: 0 2px 12px #0004; transition: background 0.2s, transform 0.2s; }
+		button:hover { filter: brightness(1.15); transform: translateY(-2px); }
+		.error { color: #d32f2f; text-align: center; margin-bottom: 12px; font-weight: bold; font-size: 1em; }
+		.success { color: #388e3c; text-align: center; margin-bottom: 12px; font-weight: bold; font-size: 1em; }
+		@media (max-width: 500px) { .login-box { width: 98vw; padding: 24px 8px; margin: 30px auto; } }
+		@keyframes fadeIn { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+	</style>
 </head>
 <body>
-  <div class="login-box" id="loginBox">
-    <h2>Login</h2>
-    <form id="loginForm" style="width:100%;display:flex;flex-direction:column;align-items:center;">
-      <input type="text" id="username" placeholder="Gebruikersnaam" required autofocus style="max-width:260px;">
-      <input type="password" id="password" placeholder="Wachtwoord" required style="max-width:260px;">
-      <div class="error" id="errorMsg" style="max-width:260px;"></div>
-      <button type="submit" style="max-width:260px;">Inloggen</button>
-    </form>
-  </div>
-  <div id="dashboard" style="display:none;max-width:600px;margin:40px auto;">
-    <h2 style="text-align:center;margin-bottom:24px;">Toestel Dashboard</h2>
-    <div id="pairingSection" style="margin-bottom:24px;text-align:center;">
-      <div id="pairingInstructions" style="margin-bottom:12px;font-size:1.1em;color:#fff;">
-        Voer hieronder de 6-cijferige code in die op de app wordt getoond om het toestel direct te koppelen.
-      </div>
-      <input type="text" id="appCodeInput" placeholder="App code" maxlength="6" style="width:160px;padding:8px;border-radius:6px;border:1px solid #444;font-size:1.1em;">
-      <button id="pairDeviceBtn" style="margin-left:8px;background:#388e3c;">Koppel toestel</button>
-      <div id="pairDeviceResult" style="margin-top:8px;font-size:1em;"></div>
-    </div>
-    <div id="deviceCard" class="card">
-      <div class="card-header">
-        <div id="statusIcon" class="status-icon"></div>
-        <div>
-          <div id="deviceNameBox" style="margin-bottom:4px;"></div>
-          <div id="deviceId" class="device-id"></div>
-          <div id="deviceState" class="device-state"></div>
-        </div>
-      </div>
-      <div class="card-section">
-        <div id="locationDetails" class="location-details"></div>
-        <div id="mapPreview" class="map-preview"></div>
-      </div>
-      <div class="card-section">
-        <div id="lastAction" class="last-action"></div>
-      </div>
-      <div class="card-actions">
-        <button class="action-btn" id="lockBtn" style="background:#d32f2f;"><span style="font-size:1.2em;">🔒</span> Lock</button>
-        <button class="action-btn" id="unlockBtn" style="background:#388e3c;"><span style="font-size:1.2em;">🔓</span> Unlock</button>
-        <button class="action-btn" id="takeoverBtn" style="background:#1976d2;"><span style="font-size:1.2em;">🕹️</span> Takeover</button>
-      </div>
-      <div id="actionResult" class="action-result"></div>
-    </div>
-  </div>
-  <script>
-    // ...existing code...
-  </script>
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="nl">
-<head>
-  <meta charset="UTF-8">
-  <title>Login TrackerMobile</title>
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <style>
-  body { font-family: 'Inter', Arial, sans-serif; background: #181a20; color: #e0e0e0; margin: 0; }
-  .login-box { background: #23263a; padding: 40px 32px; margin: 80px auto; width: 340px; border-radius: 16px; box-shadow: 0 4px 24px #0008; border: 1px solid #2c2f3c; animation: fadeIn 0.7s; display: flex; flex-direction: column; align-items: center; }
-  h2 { text-align: center; color: #fff; text-shadow: 0 2px 8px #0006; font-size: 2em; margin-bottom: 18px; }
-  input[type=text], input[type=password], input[type=number] { width: 100%; padding: 12px; margin: 10px 0 20px; border: 1px solid #444; border-radius: 8px; background: #181a20; color: #e0e0e0; font-size: 1em; transition: border 0.2s; }
-  input:focus { border: 1.5px solid #1976d2; background: #23263a; }
-  button { width: 100%; padding: 12px; background: linear-gradient(90deg,#1976d2,#0d47a1); color: #fff; border: none; border-radius: 8px; font-size: 1.1em; font-weight: bold; box-shadow: 0 2px 12px #0004; transition: background 0.2s, transform 0.2s; }
-  button:hover { filter: brightness(1.15); transform: translateY(-2px); }
-  .error { color: #d32f2f; text-align: center; margin-bottom: 12px; font-weight: bold; font-size: 1em; }
-  .success { color: #388e3c; text-align: center; margin-bottom: 12px; font-weight: bold; font-size: 1em; }
-  @media (max-width: 500px) { .login-box { width: 98vw; padding: 24px 8px; margin: 30px auto; } }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-  </style>
-</head>
-<body>
-  <div class="login-box" id="loginBox">
-    <h2>Login</h2>
-    <form id="loginForm" style="width:100%;display:flex;flex-direction:column;align-items:center;">
-      <input type="text" id="username" placeholder="Gebruikersnaam" required autofocus style="max-width:260px;">
-      <input type="password" id="password" placeholder="Wachtwoord" required style="max-width:260px;">
-      <div class="error" id="errorMsg" style="max-width:260px;"></div>
-      <button type="submit" style="max-width:260px;">Inloggen</button>
-    </form>
-  </div>
-  <div id="dashboard" style="display:none;max-width:600px;margin:40px auto;">
-    <h2 style="text-align:center;margin-bottom:24px;">Toestel Dashboard</h2>
-    <div id="pairingSection" style="margin-bottom:24px;text-align:center;">
-      <div id="pairingInstructions" style="margin-bottom:12px;font-size:1.1em;color:#fff;">
-        Voer hieronder de 6-cijferige code in die op de app wordt getoond om het toestel direct te koppelen.
-      </div>
-      <input type="text" id="appCodeInput" placeholder="App code" maxlength="6" style="width:160px;padding:8px;border-radius:6px;border:1px solid #444;font-size:1.1em;">
-      <button id="pairDeviceBtn" style="margin-left:8px;background:#388e3c;">Koppel toestel</button>
-      <div id="pairDeviceResult" style="margin-top:8px;font-size:1em;"></div>
-    </div>
-    <div id="deviceCard" class="card">
-      <div class="card-header">
-        <div id="statusIcon" class="status-icon"></div>
-        <div>
-          <div id="deviceNameBox" style="margin-bottom:4px;"></div>
-          <div id="deviceId" class="device-id"></div>
-          <div id="deviceState" class="device-state"></div>
-        </div>
-      </div>
-      <div class="card-section">
-        <div id="locationDetails" class="location-details"></div>
-        <div id="mapPreview" class="map-preview"></div>
-      </div>
-      <div class="card-section">
-        <div id="lastAction" class="last-action"></div>
-      </div>
-      <div class="card-actions">
-        <button class="action-btn" id="lockBtn" style="background:#d32f2f;"><span style="font-size:1.2em;">🔒</span> Lock</button>
-        <button class="action-btn" id="unlockBtn" style="background:#388e3c;"><span style="font-size:1.2em;">🔓</span> Unlock</button>
-        <button class="action-btn" id="takeoverBtn" style="background:#1976d2;"><span style="font-size:1.2em;">🕹️</span> Takeover</button>
-      </div>
-      <div id="actionResult" class="action-result"></div>
-    </div>
-  </div>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #181a20;
-      color: #e0e0e0;
-      margin: 0;
-    }
-    @media (max-width: 700px) {
-      #dashboard { max-width: 98vw; margin: 10px auto; }
-      .card { padding: 16px 8px; }
-      .card-header { flex-direction: column; gap: 8px; }
-      .card-actions { flex-direction: column; gap: 10px; }
-    }
-    .card {
-      background: #23263a;
-      border-radius: 12px;
-      box-shadow: 0 2px 16px #0008;
-      padding: 24px 32px;
-      margin-bottom: 24px;
-      animation: fadeIn 0.7s;
-      border: 1px solid #2c2f3c;
-    }
-    .card-header {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-    .status-icon { font-size: 2.5em; }
-    .device-id { font-weight: bold; font-size: 1.2em; color: #fff; }
-    .device-state { margin-top: 4px; font-size: 1em; }
-    .location-details { font-size: 1em; color: #90caf9; margin-bottom: 8px; }
-    .map-preview { margin: 8px 0; text-align: center; }
-    .last-action { font-size: 0.95em; color: #b0b0b0; margin-bottom: 8px; }
-    .card-section { margin-top: 18px; }
-    .card-actions {
-      margin-top: 24px;
-      display: flex;
-      gap: 16px;
-      justify-content: center;
-    }
-    .action-btn {
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      padding: 12px 24px;
-      font-size: 1em;
-      cursor: pointer;
-      box-shadow: 0 1px 8px #0004;
-      transition: background 0.2s, transform 0.2s;
-      font-weight: bold;
-    }
-    .action-btn#lockBtn { background: linear-gradient(90deg,#d32f2f,#b71c1c); }
-    .action-btn#unlockBtn { background: linear-gradient(90deg,#388e3c,#1b5e20); }
-    .action-btn#takeoverBtn { background: linear-gradient(90deg,#1976d2,#0d47a1); }
-    .action-btn:hover {
-      filter: brightness(1.15);
-      transform: translateY(-2px);
-    }
-    .action-result {
-      margin-top: 18px;
-      text-align: center;
-      font-size: 1.1em;
-    }
-    h2 {
-      color: #fff;
-      text-shadow: 0 2px 8px #0006;
-    }
-    input, button {
-      outline: none;
-    }
-    @keyframes fadeIn {
-  </style>
-  <script>
-window.onload = function() {
-  const deviceNameBox = document.getElementById('deviceNameBox');
-  const appCodeInput = document.getElementById('appCodeInput');
-  const pairDeviceBtn = document.getElementById('pairDeviceBtn');
-  const pairDeviceResult = document.getElementById('pairDeviceResult');
+	   <div class="login-box" id="loginBox">
+		   <h2>Login</h2>
+		   <form id="loginForm" style="width:100%;display:flex;flex-direction:column;align-items:center;">
+			   <input type="text" id="username" placeholder="Gebruikersnaam" required autofocus style="max-width:260px;">
+			   <input type="password" id="password" placeholder="Wachtwoord" required style="max-width:260px;">
+			   <div class="error" id="errorMsg" style="max-width:260px;"></div>
+			   <button type="submit" style="max-width:260px;">Inloggen</button>
+		   </form>
+	   </div>
+	   <div class="login-box" id="logoutBox" style="display:none;flex-direction:column;align-items:center;">
+		   <h2>Welkom!</h2>
+		   <form id="pairForm" style="width:100%;display:flex;flex-direction:column;align-items:center;">
+			   <input type="text" id="pairCode" placeholder="Pair code (6 cijfers)" maxlength="6" style="max-width:180px;">
+			   <button type="submit" style="max-width:180px;">Koppel toestel</button>
+			   <div class="success" id="pairSuccess" style="max-width:180px;"></div>
+			   <div class="error" id="pairError" style="max-width:180px;"></div>
+		   </form>
+		   <input type="text" id="socketUrl" placeholder="Socket.io server URL" value="ws://localhost:4000" style="max-width:260px;margin-top:12px;">
+		   <button id="setSocketUrlBtn" style="max-width:260px;margin-top:6px;">Gebruik deze server</button>
+		   <button id="logoutBtn" style="max-width:260px;margin-top:18px;">Uitloggen</button>
+		   <div id="connectionStatus" style="margin-top:12px;font-size:0.95em;"></div>
+	   </div>
+	   <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+	   <script>
+	   // Cookie helpers
+	   function setCookie(name, value, days) {
+		   let expires = "";
+		   if (days) {
+			   const date = new Date();
+			   date.setTime(date.getTime() + (days*24*60*60*1000));
+			   expires = "; expires=" + date.toUTCString();
+		   }
+		   document.cookie = name + "=" + (value || "")  + expires + "; path=/";
+	   }
+	   function getCookie(name) {
+		   const nameEQ = name + "=";
+		   const ca = document.cookie.split(';');
+		   for(let i=0;i < ca.length;i++) {
+			   let c = ca[i];
+			   while (c.charAt(0)==' ') c = c.substring(1,c.length);
+			   if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+		   }
+		   return null;
+	   }
+	   function eraseCookie(name) {
+		   document.cookie = name+'=; Max-Age=-99999999; path=/';
+	   }
 
-  pairDeviceBtn.addEventListener('click', async function() {
-    const appCode = appCodeInput.value.trim();
-    if (appCode.length !== 6 || !/^[0-9]{6}$/.test(appCode)) {
-      pairDeviceResult.textContent = 'Voer een geldige 6-cijferige code in.';
-      pairDeviceResult.style.color = '#d32f2f';
-      return;
-    }
-    pairDeviceResult.textContent = 'Bezig met koppelen...';
-    pairDeviceResult.style.color = '#fff';
-    // Robust timeout logic using AbortController
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000); // 8s timeout
-    try {
-      const res = await fetch('/api/pair_device', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({code: appCode}),
-        signal: controller.signal
-      });
-      console.log('Pairing fetch response:', res);
-      let data;
-      try {
-        data = await res.json();
-        console.log('Pairing response JSON:', data);
-      } catch (jsonErr) {
-        throw new Error(`Fout bij koppelen: geen geldige JSON (${res.status})`);
-      }
-      if (res.ok && data.success) {
-        pairDeviceResult.textContent = 'Koppeling geslaagd!';
-        pairDeviceResult.style.color = '#388e3c';
-        loadDeviceDetails();
-      } else {
-        let errorMsg = data.error || data.reason || 'Onbekende fout';
-        pairDeviceResult.textContent = `Koppeling mislukt (${res.status}): ${errorMsg}`;
-        pairDeviceResult.style.color = '#d32f2f';
-        pairDeviceResult.style.fontWeight = 'bold';
-        pairDeviceResult.style.border = '2px solid #d32f2f';
-        setTimeout(() => {
-          pairDeviceResult.style.border = '';
-        }, 1200);
-      }
-    } catch (error) {
-      console.error('Pairing fetch error:', error);
-      if (error.name === 'AbortError') {
-        pairDeviceResult.textContent = 'Fout: server reageert niet (timeout).';
-      } else {
-        pairDeviceResult.textContent = error.message || `Netwerkfout: ${error}`;
-      }
-      pairDeviceResult.style.color = '#d32f2f';
-    } finally {
-      clearTimeout(timeoutId);
-    }
-  });
+	   // UI logic
+	   function showLogin() {
+		   document.getElementById('loginBox').style.display = 'flex';
+		   document.getElementById('logoutBox').style.display = 'none';
+	   }
+	   function showLogout() {
+		   document.getElementById('loginBox').style.display = 'none';
+		   document.getElementById('logoutBox').style.display = 'flex';
+	   }
 
-  const loginForm = document.getElementById('loginForm');
-  const errorMsg = document.getElementById('errorMsg');
-  const loginBox = document.getElementById('loginBox');
-  const dashboard = document.getElementById('dashboard');
-  const deviceIdEl = document.getElementById('deviceId');
-  const deviceStateEl = document.getElementById('deviceState');
-  const locationDetails = document.getElementById('locationDetails');
-  const statusIcon = document.getElementById('statusIcon');
-  const lockBtn = document.getElementById('lockBtn');
-  const unlockBtn = document.getElementById('unlockBtn');
-  const takeoverBtn = document.getElementById('takeoverBtn');
-  const actionResult = document.getElementById('actionResult');
-  const mapPreview = document.getElementById('mapPreview');
-  const lastAction = document.getElementById('lastAction');
+	   // On page load, check login state
+	   window.onload = function() {
+		   if (getCookie('loggedIn') === 'true') {
+			   showLogout();
+			   checkConnection();
+		   } else {
+			   showLogin();
+		   }
+	   };
 
-  let deviceId = 'arjan-phone'; // For demo, use a static device_id. Replace with real device_id logic if needed.
-  let lastActionText = '';
+	   // Login form handler
+	   document.getElementById('loginForm').onsubmit = function(e) {
+		   e.preventDefault();
+		   const username = document.getElementById('username').value;
+		   const password = document.getElementById('password').value;
+		   // Simpele check, vervang dit met echte authenticatie!
+		   if (username && password) {
+			   setCookie('loggedIn', 'true', 7); // 7 dagen ingelogd
+			   document.getElementById('errorMsg').textContent = '';
+			   showLogout();
+			   checkConnection();
+		   } else {
+			   document.getElementById('errorMsg').textContent = 'Ongeldige gegevens';
+		   }
+	   };
 
-  loginForm.addEventListener('submit', function(e) {
-    e.preventDefault();
-    const user = loginForm.username.value;
-    const pass = loginForm.password.value;
-    if (user === 'Arjan' && pass === 'WOVOM9brW1992!') {
-      errorMsg.textContent = '';
-      loginBox.style.display = 'none';
-      dashboard.style.display = 'block';
-      loadDeviceDetails();
-    } else {
-      errorMsg.textContent = 'Ongeldige gebruikersnaam of wachtwoord.';
-    }
-  });
+	   // Logout button handler
+	   document.getElementById('logoutBtn').onclick = function() {
+		   eraseCookie('loggedIn');
+		   showLogin();
+	   };
 
-  async function loadDeviceDetails() {
-    // Hier kun je de device details ophalen en tonen na koppeling
-    // Bijvoorbeeld via een API call naar /api/device_details
-    // ...existing code...
-  }
+	   // Device pairing logic
+	   document.getElementById('pairForm').onsubmit = async function(e) {
+		   e.preventDefault();
+		   const code = document.getElementById('pairCode').value;
+		   document.getElementById('pairSuccess').textContent = '';
+		   document.getElementById('pairError').textContent = '';
+		   if (!code || code.length !== 6) {
+			   document.getElementById('pairError').textContent = 'Voer een geldige 6-cijferige code in.';
+			   return;
+		   }
+		   try {
+			   const res = await fetch('/api/pair_device', {
+				   method: 'POST',
+				   headers: { 'Content-Type': 'application/json' },
+				   body: JSON.stringify({ code })
+			   });
+			   const data = await res.json();
+			   if (data.success) {
+				   document.getElementById('pairSuccess').textContent = 'Toestel gekoppeld!';
+				   joinDeviceRoom(code);
+			   } else {
+				   document.getElementById('pairError').textContent = data.error || 'Koppeling mislukt.';
+			   }
+		   } catch (err) {
+			   document.getElementById('pairError').textContent = 'Serverfout: ' + err.message;
+		   }
+	   };
 
-  lockBtn.onclick = async function() {
-    // ...existing code...
-  };
-  unlockBtn.onclick = async function() {
-    // ...existing code...
-  };
-  takeoverBtn.onclick = async function() {
-    // ...existing code...
-  };
+	   // Socket.io connection
+	   let socket = null;
+	   let socketServerUrl = document.getElementById('socketUrl').value;
 
-  // Auto-refresh device details every 10 seconds
-  setInterval(() => {
-    if (dashboard.style.display === 'block') loadDeviceDetails();
-  }, 10000);
-};
-  </script>
-</body>
-</html>
+	   document.getElementById('setSocketUrlBtn').onclick = function() {
+		   socketServerUrl = document.getElementById('socketUrl').value;
+		   document.getElementById('connectionStatus').textContent = 'Socket.io server ingesteld: ' + socketServerUrl;
+	   };
+
+	   function joinDeviceRoom(code) {
+		   if (!window.io) return;
+		   if (socket) socket.disconnect();
+		   try {
+			   socket = io(socketServerUrl, { transports: ['websocket'] });
+			   socket.on('connect', () => {
+				   document.getElementById('connectionStatus').textContent = 'Verbonden met toestel (' + code + ')';
+				   socket.emit('join-room', code);
+			   });
+			   socket.on('disconnect', () => {
+				   document.getElementById('connectionStatus').textContent = 'Verbinding verbroken.';
+			   });
+			   socket.on('connect_error', (err) => {
+				   document.getElementById('connectionStatus').textContent = 'Socket.io fout: ' + err.message;
+			   });
+			   socket.on('user-joined', (id) => {
+				   document.getElementById('connectionStatus').textContent = 'Toestel verbonden: ' + id;
+			   });
+			   // Voeg hier extra event handlers toe voor live data/scherm
+		   } catch (err) {
+			   document.getElementById('connectionStatus').textContent = 'Socket.io fout: ' + err.message;
+		   }
+	   }
+
+	   // Check backend connection
+	   async function checkConnection() {
+		   try {
+			   const res = await fetch('/api/check_connection');
+			   const data = await res.json();
+			   if (data.connected) {
+				   document.getElementById('connectionStatus').textContent = 'Backend verbinding OK.';
+			   } else {
+				   document.getElementById('connectionStatus').textContent = 'Backend niet bereikbaar.';
+			   }
+		   } catch (err) {
+			   document.getElementById('connectionStatus').textContent = 'Backend niet bereikbaar.';
+		   }
+	   }
+	   </script>
+
