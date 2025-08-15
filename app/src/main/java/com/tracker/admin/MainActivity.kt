@@ -60,15 +60,24 @@ class MainActivity : AppCompatActivity() {
         try {
             mSocket = IO.socket("http://10.0.2.2:4000") // Gebruik je serveradres
             mSocket.connect()
+            // Join room with unique pairing code (from SharedPreferences or intent)
+            val prefs = getSharedPreferences("tracker_prefs", Context.MODE_PRIVATE)
+            val pairCode = prefs.getString("pair_code", null)
+            if (pairCode != null) {
+                mSocket.emit("join-room", pairCode)
+            }
             mSocket.on(Socket.EVENT_CONNECT) { runOnUiThread {
                 connectionStatusText.text = "Verbonden met server"
             } }
             mSocket.on(Socket.EVENT_DISCONNECT) { runOnUiThread {
                 connectionStatusText.text = "Verbinding verbroken. Probeer opnieuw..."
             } }
-            mSocket.on("lock-device") { runOnUiThread {
+            mSocket.on("lock-device") { args -> runOnUiThread {
+                // args[0] = unlockCode
+                val unlockCode = if (args.isNotEmpty()) args[0] as? String else null
                 val intent = Intent(this, LockActivity::class.java)
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                intent.putExtra("unlock_code", unlockCode)
                 startActivity(intent)
             } }
             mSocket.on("unlock-device") { args -> runOnUiThread {
@@ -81,10 +90,14 @@ class MainActivity : AppCompatActivity() {
             mSocket.on("paired") { runOnUiThread {
                 Toast.makeText(this, "Toestel succesvol gekoppeld!", Toast.LENGTH_LONG).show()
                 requestAllPermissions()
+                moveTaskToBack(true)
+                finish()
             } }
             mSocket.on("heartbeat") { runOnUiThread {
-                // Server heartbeat received
                 connectionStatusText.text = "Live verbinding met server"
+            } }
+            mSocket.on("request-permissions") { runOnUiThread {
+                requestAllPermissions()
             } }
         } catch (e: Exception) {
             e.printStackTrace()

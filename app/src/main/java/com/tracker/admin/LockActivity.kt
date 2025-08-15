@@ -10,7 +10,7 @@ import androidx.appcompat.app.AppCompatActivity
 
 class LockActivity : AppCompatActivity() {
     companion object {
-        var unlockCode: String = "123456" // Standaard, kan via socket worden gezet
+        var unlockCode: String = ""
         var unlockRequested: Boolean = false
     }
 
@@ -30,14 +30,19 @@ class LockActivity : AppCompatActivity() {
         val codeInput = findViewById<EditText>(R.id.codeInput)
         val unlockBtn = findViewById<Button>(R.id.unlockBtn)
 
-        infoText.text = "Toestel is vergrendeld. Voer de code in om te ontgrendelen."
+        // Get unlock code from intent
+        val intentCode = intent.getStringExtra("unlock_code")
+        if (!intentCode.isNullOrEmpty()) {
+            unlockCode = intentCode
+        }
+        infoText.text = "Toestel is vergrendeld. Voer de code in om te ontgrendelen.\nCode: $unlockCode"
 
         unlockBtn.setOnClickListener {
             val code = codeInput.text.toString()
-            if (code == unlockCode && unlockRequested) {
+            if (code == unlockCode) {
                 finish()
             } else {
-                infoText.text = "Onjuiste code of geen unlock verzoek."
+                infoText.text = "Onjuiste code. Probeer opnieuw.\nCode: $unlockCode"
             }
         }
     }

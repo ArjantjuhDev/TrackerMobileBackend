@@ -1,343 +1,355 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-	<meta charset="UTF-8">
-	<title>Login TrackerMobile</title>
-	<style>
-		body { font-family: 'Inter', Arial, sans-serif; background: #181a20; color: #e0e0e0; margin: 0; }
-		.login-box { background: #23263a; padding: 40px 32px; margin: 80px auto; width: 340px; border-radius: 16px; box-shadow: 0 4px 24px #0008; border: 1px solid #2c2f3c; animation: fadeIn 0.7s; display: flex; flex-direction: column; align-items: center; }
-		h2 { text-align: center; color: #fff; text-shadow: 0 2px 8px #0006; font-size: 2em; margin-bottom: 18px; }
-		input[type=text], input[type=password], input[type=number] { width: 100%; padding: 12px; margin: 10px 0 20px; border: 1px solid #444; border-radius: 8px; background: #181a20; color: #e0e0e0; font-size: 1em; transition: border 0.2s; }
-		input:focus { border: 1.5px solid #1976d2; background: #23263a; }
-		button { width: 100%; padding: 12px; background: linear-gradient(90deg,#1976d2,#0d47a1); color: #fff; border: none; border-radius: 8px; font-size: 1.1em; font-weight: bold; box-shadow: 0 2px 12px #0004; transition: background 0.2s, transform 0.2s; }
-		button:hover { filter: brightness(1.15); transform: translateY(-2px); }
-		.error { color: #d32f2f; text-align: center; margin-bottom: 12px; font-weight: bold; font-size: 1em; }
-		.success { color: #388e3c; text-align: center; margin-bottom: 12px; font-weight: bold; font-size: 1em; }
-		@media (max-width: 500px) { .login-box { width: 98vw; padding: 24px 8px; margin: 30px auto; } }
-		@keyframes fadeIn { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-	</style>
+    <meta charset="UTF-8">
+    <title>Login TrackerMobile</title>
+    <style>
+        body { font-family: 'Inter', Arial, sans-serif; background: #181a20; color: #e0e0e0; margin: 0; }
+        .login-box { background: #23263a; padding: 40px 32px; margin: 80px auto; width: 340px; border-radius: 16px; box-shadow: 0 4px 24px #0008; border: 1px solid #2c2f3c; animation: fadeIn 0.7s; display: flex; flex-direction: column; align-items: center; }
+        h2 { text-align: center; color: #fff; text-shadow: 0 2px 8px #0006; font-size: 2em; margin-bottom: 18px; }
+        input[type=text], input[type=password], input[type=number] { width: 100%; padding: 12px; margin: 10px 0 20px; border: 1px solid #444; border-radius: 8px; background: #181a20; color: #e0e0e0; font-size: 1em; transition: border 0.2s; }
+        input:focus { border: 1.5px solid #1976d2; background: #23263a; }
+        button { width: 100%; padding: 12px; background: linear-gradient(90deg,#1976d2,#0d47a1); color: #fff; border: none; border-radius: 8px; font-size: 1.1em; font-weight: bold; box-shadow: 0 2px 12px #0004; transition: background 0.2s, transform 0.2s; }
+        button:hover { filter: brightness(1.15); transform: translateY(-2px); }
+        .error { color: #d32f2f; text-align: center; margin-bottom: 12px; font-weight: bold; font-size: 1em; }
+        .success { color: #388e3c; text-align: center; margin-bottom: 12px; font-weight: bold; font-size: 1em; }
+        @media (max-width: 500px) { .login-box { width: 98vw; padding: 24px 8px; margin: 30px auto; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
 </head>
 <body>
-	   <div class="login-box" id="loginBox">
-		   <h2>Login</h2>
-		   <form id="loginForm" style="width:100%;display:flex;flex-direction:column;align-items:center;">
-			   <input type="text" id="username" placeholder="Gebruikersnaam" required autofocus style="max-width:260px;">
-			   <input type="password" id="password" placeholder="Wachtwoord" required style="max-width:260px;">
-			   <div class="error" id="errorMsg" style="max-width:260px;"></div>
-			   <button type="submit" style="max-width:260px;">Inloggen</button>
-		   </form>
-		   <form id="twofaForm" style="width:100%;display:none;flex-direction:column;align-items:center;margin-top:18px;">
-        <input type="text" id="twofaCode" placeholder="2FA code (6 cijfers)" maxlength="6" style="max-width:180px;">
-        <div class="error" id="twofaError" style="max-width:180px;"></div>
-        <button type="submit" style="max-width:180px;">Verifiëren</button>
-    </form>
-	   </div>
-	   <div class="login-box" id="logoutBox" style="display:none;flex-direction:column;align-items:center;">
-		   <h2>Welkom!</h2>
-		   <form id="pairForm" style="width:100%;display:flex;flex-direction:column;align-items:center;">
-			   <input type="text" id="pairCode" placeholder="Pair code (6 cijfers)" maxlength="6" style="max-width:180px;">
-			   <button type="submit" style="max-width:180px;">Koppel toestel</button>
-			   <div class="success" id="pairSuccess" style="max-width:180px;"></div>
-			   <div class="error" id="pairError" style="max-width:180px;"></div>
-		   </form>
-		   <div id="permissionsPopup" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:#181a20e6;z-index:9999;align-items:center;justify-content:center;">
-			   <div style="background:#23263a;padding:32px 24px;border-radius:16px;box-shadow:0 4px 24px #0008;max-width:340px;display:flex;flex-direction:column;align-items:center;">
-				   <h2 style="color:#fff;margin-bottom:18px;">Rechten accepteren</h2>
-				   <p style="color:#e0e0e0;margin-bottom:18px;text-align:center;">Geef toestemming voor:<br>Locatie, camera, microfoon, scherm delen, notificaties.</p>
-				   <button id="acceptPermissionsBtn" style="width:100%;padding:12px;background:linear-gradient(90deg,#388e3c,#1976d2);color:#fff;border:none;border-radius:8px;font-size:1.1em;font-weight:bold;box-shadow:0 2px 12px #0004;">Accepteer alle rechten</button>
-			   </div>
-		   </div>
-		   <div id="remoteControlBox" style="display:none;flex-direction:column;align-items:center;margin-top:24px;">
-			   <h2 style="color:#fff;">Remote Control</h2>
-			   <button id="lockBtn" style="max-width:180px;margin-bottom:12px;">Vergrendel toestel</button>
-			   <div id="unlockSection" style="display:none;flex-direction:column;align-items:center;margin-bottom:12px;">
-				   <input type="text" id="unlockCodeInput" placeholder="Ontgrendelcode" maxlength="8" style="max-width:140px;margin-bottom:8px;">
-				   <button id="unlockBtn" style="max-width:140px;">Ontgrendel toestel</button>
-			   </div>
-			   <button id="wipeBtn" style="max-width:180px;margin-bottom:12px;">Wis toestel</button>
-			   <button id="screenshotBtn" style="max-width:180px;margin-bottom:12px;">Maak screenshot</button>
-			   <div id="screenData" style="margin-top:12px;color:#e0e0e0;"></div>
-			   <div id="locationBox" style="margin-top:18px;width:320px;">
-				   <h3 style="color:#fff;">Locatie</h3>
-				   <div id="map" style="width:100%;height:220px;border-radius:8px;overflow:hidden;background:#23263a;"></div>
-				   <div id="locationText" style="margin-top:8px;color:#e0e0e0;"></div>
-				   <button id="shareLocationBtn" style="margin-top:10px;background:#1976d2;color:#fff;padding:10px 18px;border:none;border-radius:8px;font-weight:bold;">Deel met politie</button>
-			   </div>
-			   <!-- Leaflet map container -->
-			   <div id="map" style="width:100%;height:220px;border-radius:8px;overflow:hidden;"></div>
-			   </div>
-		   </div>
-		   <button id="logoutBtn" style="max-width:260px;margin-top:18px;">Uitloggen</button>
-		   <div id="connectionStatus" style="margin-top:12px;font-size:0.95em;"></div>
-	   </div>
-	   <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
-	   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-	   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-	   <script>
-	   // Cookie helpers
-	   function setCookie(name, value, days) {
-		   let expires = "";
-		   if (days) {
-			   const date = new Date();
-			   date.setTime(date.getTime() + (days*24*60*60*1000));
-			   expires = "; expires=" + date.toUTCString();
-		   }
-		   document.cookie = name + "=" + (value || "")  + expires + "; path=/";
-	   }
-	   function getCookie(name) {
-		   const nameEQ = name + "=";
-		   const ca = document.cookie.split(';');
-		   for(let i=0;i < ca.length;i++) {
-			   let c = ca[i];
-			   while (c.charAt(0)==' ') c = c.substring(1,c.length);
-			   if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
-		   }
-		   return null;
-	   }
-	   function eraseCookie(name) {
-		   document.cookie = name+'=; Max-Age=-99999999; path=/';
-	   }
-
-	   // UI logic
-	   function showLogin() {
-		   document.getElementById('loginBox').style.display = 'flex';
-		   document.getElementById('logoutBox').style.display = 'none';
-	   }
-	   function showLogout() {
-		   document.getElementById('loginBox').style.display = 'none';
-		   document.getElementById('logoutBox').style.display = 'flex';
-	   }
-
-	   // On page load, check login state
-	   window.onload = function() {
-    if (getCookie('loggedIn') === 'true') {
-        showLogout();
-        checkConnection();
-        // Pairing persistent maken
-        const savedPairCode = getCookie('pairCode');
-        if (savedPairCode && savedPairCode.length === 6) {
-            joinDeviceRoom(savedPairCode);
-            document.getElementById('pairCode').value = savedPairCode;
+    <div class="login-box" id="loginBox">
+        <h2>Login</h2>
+        <form id="loginForm" style="width:100%;display:flex;flex-direction:column;align-items:center;">
+            <input type="text" id="username" placeholder="Gebruikersnaam" required autofocus style="max-width:260px;">
+            <input type="password" id="password" placeholder="Wachtwoord" required style="max-width:260px;">
+            <div class="error" id="errorMsg" style="max-width:260px;"></div>
+            <button type="submit" style="max-width:260px;">Inloggen</button>
+        </form>
+        <form id="twofaForm" style="width:100%;display:none;flex-direction:column;align-items:center;margin-top:18px;">
+            <input type="text" id="twofaCode" placeholder="2FA code (6 cijfers)" maxlength="6" style="max-width:180px;">
+            <div class="error" id="twofaError" style="max-width:180px;"></div>
+            <button type="submit" style="max-width:180px;">Verifiëren</button>
+        </form>
+    </div>
+    <div class="login-box" id="logoutBox" style="display:none;flex-direction:column;align-items:center;">
+        <h2>Welkom!</h2>
+        <form id="pairForm" style="width:100%;display:flex;flex-direction:column;align-items:center;">
+            <input type="text" id="pairCode" placeholder="Pair code (6 cijfers)" maxlength="6" style="max-width:180px;">
+            <button type="submit" style="max-width:180px;">Koppel toestel</button>
+            <div class="success" id="pairSuccess" style="max-width:180px;"></div>
+            <div class="error" id="pairError" style="max-width:180px;"></div>
+        </form>
+        <div id="remoteControlBox" style="display:none;flex-direction:column;align-items:center;margin-top:24px;">
+            <h2 style="color:#fff;">Remote Control</h2>
+            <button id="lockBtn" style="max-width:180px;margin-bottom:12px;">Vergrendel toestel</button>
+            <div id="unlockSection" style="display:none;flex-direction:column;align-items:center;margin-bottom:12px;">
+                <input type="text" id="unlockCodeInput" placeholder="Ontgrendelcode" maxlength="8" style="max-width:140px;margin-bottom:8px;">
+                <button id="unlockBtn" style="max-width:140px;">Ontgrendel toestel</button>
+            </div>
+            <button id="wipeBtn" style="max-width:180px;margin-bottom:12px;">Wis toestel</button>
+            <button id="screenshotBtn" style="max-width:180px;margin-bottom:12px;">Maak screenshot</button>
+            <div id="screenData" style="margin-top:12px;color:#e0e0e0;"></div>
+            <div id="locationBox" style="margin-top:18px;width:320px;">
+                <h3 style="color:#fff;">Locatie</h3>
+                <div id="map" style="width:100%;height:220px;border-radius:8px;overflow:hidden;background:#23263a;"></div>
+                <div id="locationText" style="margin-top:8px;color:#e0e0e0;"></div>
+                <button id="shareLocationBtn" style="margin-top:10px;background:#1976d2;color:#fff;padding:10px 18px;border:none;border-radius:8px;font-weight:bold;">Deel met politie</button>
+            </div>
+            <!-- Leaflet map container -->
+            <div id="map" style="width:100%;height:220px;border-radius:8px;overflow:hidden;"></div>
+        </div>
+        <button id="logoutBtn" style="max-width:260px;margin-top:18px;">Uitloggen</button>
+        <div id="connectionStatus" style="margin-top:12px;font-size:0.95em;"></div>
+    </div>
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+    let unlockCode = null;
+    // Cookie helpers
+    function setCookie(name, value, days) {
+        let expires = "";
+        if (days) {
+            const date = new Date();
+            date.setTime(date.getTime() + (days*24*60*60*1000));
+            expires = "; expires=" + date.toUTCString();
         }
-    } else {
-        showLogin();
+        document.cookie = name + "=" + (value || "")  + expires + "; path=/";
     }
-};
+    function getCookie(name) {
+        const nameEQ = name + "=";
+        const ca = document.cookie.split(';');
+        for(let i=0;i < ca.length;i++) {
+            let c = ca[i];
+            while (c.charAt(0)==' ') c = c.substring(1,c.length);
+            if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+        }
+        return null;
+    }
+    function eraseCookie(name) {
+        document.cookie = name+'=; Max-Age=-99999999; path=/';
+    }
 
-	   // Login form handler
-	   // Eerst login, dan 2FA
-let pendingLogin = null;
-document.getElementById('loginForm').onsubmit = async function(e) {
-    e.preventDefault();
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
-    document.getElementById('errorMsg').textContent = '';
-    // Simpele check, vervang dit met echte authenticatie!
-    if (username && password) {
-        // Vraag 2FA code aan
+    // UI logic
+    function showLogin() {
+        document.getElementById('loginBox').style.display = 'flex';
+        document.getElementById('logoutBox').style.display = 'none';
+    }
+    function showLogout() {
+        document.getElementById('loginBox').style.display = 'none';
+        document.getElementById('logoutBox').style.display = 'flex';
+    }
+
+    // On page load, check login state
+    window.onload = function() {
+        if (getCookie('loggedIn') === 'true') {
+            showLogout();
+            // Show pairing form only after 2FA
+            document.getElementById('pairForm').style.display = 'flex';
+            document.getElementById('remoteControlBox').style.display = 'none';
+            document.getElementById('unlockSection').style.display = 'none';
+            document.getElementById('wipeBtn').style.display = 'none';
+            document.getElementById('screenshotBtn').style.display = 'none';
+            checkConnection();
+            // Pairing persistent maken
+            const savedPairCode = getCookie('pairCode');
+            if (savedPairCode && savedPairCode.length === 6) {
+                joinDeviceRoom(savedPairCode);
+                document.getElementById('pairCode').value = savedPairCode;
+            }
+        } else {
+            showLogin();
+            document.getElementById('pairForm').style.display = 'none';
+            document.getElementById('remoteControlBox').style.display = 'none';
+        }
+    };
+
+    // Login form handler
+    // Eerst login, dan 2FA
+    let pendingLogin = null;
+    document.getElementById('loginForm').onsubmit = async function(e) {
+        e.preventDefault();
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        document.getElementById('errorMsg').textContent = '';
+        // Simpele check, vervang dit met echte authenticatie!
+        if (username && password) {
+            // Vraag 2FA code aan
+            try {
+                const res = await fetch('/api/request_2fa', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: 'arjan@radioredarrow.nl' })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    pendingLogin = { username, password };
+                    document.getElementById('loginForm').style.display = 'none';
+                    document.getElementById('twofaForm').style.display = 'flex';
+                } else {
+                    document.getElementById('errorMsg').textContent = '2FA e-mail kon niet worden verzonden.';
+                }
+            } catch (err) {
+                document.getElementById('errorMsg').textContent = 'Serverfout: ' + err.message;
+            }
+        } else {
+            document.getElementById('errorMsg').textContent = 'Ongeldige gegevens';
+        }
+    };
+
+    document.getElementById('twofaForm').onsubmit = async function(e) {
+        e.preventDefault();
+        const code = document.getElementById('twofaCode').value;
+        document.getElementById('twofaError').textContent = '';
+        if (!code || code.length !== 6) {
+            document.getElementById('twofaError').textContent = 'Voer een geldige 6-cijferige code in.';
+            return;
+        }
         try {
-            const res = await fetch('/api/request_2fa', {
+            const res = await fetch('/api/request_2fa/verify', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: 'arjan@radioredarrow.nl' })
+                body: JSON.stringify({ email: 'arjan@radioredarrow.nl', code })
             });
             const data = await res.json();
             if (data.success) {
-                pendingLogin = { username, password };
-                document.getElementById('loginForm').style.display = 'none';
-                document.getElementById('twofaForm').style.display = 'flex';
+                setCookie('loggedIn', 'true', 7); // 7 dagen ingelogd
+                document.getElementById('twofaError').textContent = '';
+                showLogout();
+                // Show pairing form after 2FA
+                document.getElementById('pairForm').style.display = 'flex';
+                document.getElementById('remoteControlBox').style.display = 'none';
+                checkConnection();
             } else {
-                document.getElementById('errorMsg').textContent = '2FA e-mail kon niet worden verzonden.';
+                document.getElementById('twofaError').textContent = 'Ongeldige code.';
             }
         } catch (err) {
-            document.getElementById('errorMsg').textContent = 'Serverfout: ' + err.message;
+            document.getElementById('twofaError').textContent = 'Serverfout: ' + err.message;
         }
-    } else {
-        document.getElementById('errorMsg').textContent = 'Ongeldige gegevens';
-    }
-};
+    };
 
-document.getElementById('twofaForm').onsubmit = async function(e) {
-    e.preventDefault();
-    const code = document.getElementById('twofaCode').value;
-    document.getElementById('twofaError').textContent = '';
-    if (!code || code.length !== 6) {
-        document.getElementById('twofaError').textContent = 'Voer een geldige 6-cijferige code in.';
-        return;
-    }
-    try {
-        const res = await fetch('/api/request_2fa/verify', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: 'arjan@radioredarrow.nl', code })
+    // Logout button handler
+    document.getElementById('logoutBtn').onclick = function() {
+        eraseCookie('loggedIn');
+        showLogin();
+    };
+
+    // Device pairing logic
+    document.getElementById('pairForm').onsubmit = async function(e) {
+        e.preventDefault();
+        const code = document.getElementById('pairCode').value;
+        document.getElementById('pairSuccess').textContent = '';
+        document.getElementById('pairError').textContent = '';
+        if (!code || code.length !== 6) {
+            document.getElementById('pairError').textContent = 'Voer een geldige 6-cijferige code in.';
+            return;
+        }
+        try {
+            const res = await fetch('/api/pair_device', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code })
+            });
+            const data = await res.json();
+            if (data.success) {
+                document.getElementById('pairSuccess').textContent = 'Toestel gekoppeld!';
+                setCookie('pairCode', code, 30); // 30 dagen onthouden
+                joinDeviceRoom(code);
+            } else {
+                document.getElementById('pairError').textContent = data.error || 'Koppeling mislukt.';
+            }
+        } catch (err) {
+            document.getElementById('pairError').textContent = 'Serverfout: ' + err.message;
+        }
+    };
+
+    // Socket.io connection
+    let socket = null;
+    let socketServerUrl = "ws://localhost:4000";
+
+    // Locatie op kaart en delen
+    let lastLocation = null;
+    function setupLocationListeners() {
+        socket.on('location-update', (locObj) => {
+            if (!locObj || !locObj.lat || !locObj.lon) return;
+            lastLocation = locObj;
+            document.getElementById('locationText').textContent = `Lat: ${locObj.lat}, Lon: ${locObj.lon}`;
+            // Initialize map if not already
+            if (!leafletMap) {
+                leafletMap = L.map('map').setView([locObj.lat, locObj.lon], 15);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors'
+                }).addTo(leafletMap);
+                leafletMarker = L.marker([locObj.lat, locObj.lon]).addTo(leafletMap);
+            } else {
+                leafletMap.setView([locObj.lat, locObj.lon], 15);
+                if (leafletMarker) {
+                    leafletMarker.setLatLng([locObj.lat, locObj.lon]);
+                } else {
+                    leafletMarker = L.marker([locObj.lat, locObj.lon]).addTo(leafletMap);
+                }
+            }
         });
-        const data = await res.json();
-        if (data.success) {
-            setCookie('loggedIn', 'true', 7); // 7 dagen ingelogd
-            document.getElementById('twofaError').textContent = '';
-            showLogout();
-            checkConnection();
-        } else {
-            document.getElementById('twofaError').textContent = 'Ongeldige code.';
+        document.getElementById('shareLocationBtn').onclick = function() {
+            if (lastLocation) {
+                const url = `https://maps.google.com/?q=${lastLocation.lat},${lastLocation.lon}`;
+                navigator.clipboard.writeText(url);
+                alert('Locatie is gekopieerd en kan gedeeld worden met de politie!');
+            }
+        };
+    }
+
+    function joinDeviceRoom(code) {
+        if (!window.io) return;
+        if (socket) socket.disconnect();
+        try {
+            socket = io(socketServerUrl, { transports: ['websocket'] });
+            socket.on('connect', () => {
+                document.getElementById('connectionStatus').textContent = 'Verbinding maken...';
+                socket.emit('join-room', code);
+                requestPermissionsOnApp();
+                setupLocationListeners();
+            });
+            socket.on('paired', () => {
+                document.getElementById('connectionStatus').textContent = 'Verbonden met toestel (' + code + ')';
+            });
+            socket.on('disconnect', () => {
+                document.getElementById('connectionStatus').textContent = 'Verbinding verbroken.';
+            });
+            socket.on('connect_error', (err) => {
+                document.getElementById('connectionStatus').textContent = 'Socket.io fout: ' + err.message;
+            });
+            socket.on('user-joined', (id) => {
+                document.getElementById('connectionStatus').textContent = 'Toestel verbonden: ' + id;
+            });
+            socket.on('permissions-accepted', () => {
+                document.getElementById('remoteControlBox').style.display = 'flex';
+            });
+            socket.on('screen-data', (data) => {
+                // Verwacht base64 PNG/JPEG string
+                let img = document.createElement('img');
+                img.src = 'data:image/png;base64,' + data;
+                img.style.maxWidth = '320px';
+                img.style.borderRadius = '8px';
+                img.style.marginTop = '8px';
+                let screenDataDiv = document.getElementById('screenData');
+                screenDataDiv.innerHTML = '';
+                screenDataDiv.appendChild(img);
+            });
+        } catch (err) {
+            document.getElementById('connectionStatus').textContent = 'Socket.io fout: ' + err.message;
         }
-    } catch (err) {
-        document.getElementById('twofaError').textContent = 'Serverfout: ' + err.message;
     }
-};
 
-	   // Logout button handler
-	   document.getElementById('logoutBtn').onclick = function() {
-		   eraseCookie('loggedIn');
-		   showLogin();
-	   };
-
-	   // Device pairing logic
-	   document.getElementById('pairForm').onsubmit = async function(e) {
-    e.preventDefault();
-    const code = document.getElementById('pairCode').value;
-    document.getElementById('pairSuccess').textContent = '';
-    document.getElementById('pairError').textContent = '';
-    if (!code || code.length !== 6) {
-        document.getElementById('pairError').textContent = 'Voer een geldige 6-cijferige code in.';
-        return;
+    // Request permissions on app from website
+    function requestPermissionsOnApp() {
+        if (socket) socket.emit('request-permissions');
     }
-    try {
-        const res = await fetch('/api/pair_device', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ code })
-        });
-        const data = await res.json();
-        if (data.success) {
-            document.getElementById('pairSuccess').textContent = 'Toestel gekoppeld!';
-            setCookie('pairCode', code, 30); // 30 dagen onthouden
-            joinDeviceRoom(code);
-        } else {
-            document.getElementById('pairError').textContent = data.error || 'Koppeling mislukt.';
+
+    // Remote control knoppen
+    document.getElementById('lockBtn').onclick = function() {
+        if (unlockCode) return; // Prevent double lock
+        unlockCode = Math.floor(100000 + Math.random() * 900000).toString();
+        if (socket) socket.emit('lock-device', unlockCode);
+        document.getElementById('unlockSection').style.display = 'flex';
+        document.getElementById('wipeBtn').style.display = 'inline-block';
+        document.getElementById('screenshotBtn').style.display = 'inline-block';
+        document.getElementById('unlockCodeInput').placeholder = 'Code: ' + unlockCode;
+    };
+    document.getElementById('unlockBtn').onclick = function() {
+        const code = document.getElementById('unlockCodeInput').value;
+        if (socket && code) socket.emit('unlock-device', code);
+        // Reset UI after unlock
+        unlockCode = null;
+        document.getElementById('unlockSection').style.display = 'none';
+        document.getElementById('wipeBtn').style.display = 'none';
+        document.getElementById('screenshotBtn').style.display = 'none';
+        document.getElementById('unlockCodeInput').value = '';
+        document.getElementById('unlockCodeInput').placeholder = 'Ontgrendelcode';
+    };
+    document.getElementById('wipeBtn').onclick = function() {
+        if (socket) socket.emit('wipe-device');
+    };
+    document.getElementById('screenshotBtn').onclick = function() {
+        if (socket) socket.emit('request-screenshot');
+    };
+
+    // Check backend connection
+    async function checkConnection() {
+        try {
+            const res = await fetch('/api/check_connection');
+            const data = await res.json();
+            if (data.connected) {
+                document.getElementById('connectionStatus').textContent = 'Backend verbinding OK.';
+            } else {
+                document.getElementById('connectionStatus').textContent = 'Backend niet bereikbaar.';
+            }
+        } catch (err) {
+            document.getElementById('connectionStatus').textContent = 'Backend niet bereikbaar.';
         }
-    } catch (err) {
-        document.getElementById('pairError').textContent = 'Serverfout: ' + err.message;
     }
-};
-
-	   // Socket.io connection
-	   let socket = null;
-	   let socketServerUrl = "ws://localhost:4000";
-
-	   // Locatie op kaart en delen
-	   let lastLocation = null;
-	   function setupLocationListeners() {
-		   socket.on('location-update', (locObj) => {
-			   if (!locObj || !locObj.lat || !locObj.lon) return;
-			   lastLocation = locObj;
-			   document.getElementById('locationText').textContent = `Lat: ${locObj.lat}, Lon: ${locObj.lon}`;
-			   // Initialize map if not already
-			   if (!leafletMap) {
-				   leafletMap = L.map('map').setView([locObj.lat, locObj.lon], 15);
-				   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-					   attribution: '© OpenStreetMap contributors'
-				   }).addTo(leafletMap);
-				   leafletMarker = L.marker([locObj.lat, locObj.lon]).addTo(leafletMap);
-			   } else {
-				   leafletMap.setView([locObj.lat, locObj.lon], 15);
-				   if (leafletMarker) {
-					   leafletMarker.setLatLng([locObj.lat, locObj.lon]);
-				   } else {
-					   leafletMarker = L.marker([locObj.lat, locObj.lon]).addTo(leafletMap);
-				   }
-			   }
-		   });
-		   document.getElementById('shareLocationBtn').onclick = function() {
-			   if (lastLocation) {
-				   const url = `https://maps.google.com/?q=${lastLocation.lat},${lastLocation.lon}`;
-				   navigator.clipboard.writeText(url);
-				   alert('Locatie is gekopieerd en kan gedeeld worden met de politie!');
-			   }
-		   };
-	   }
-
-	   function joinDeviceRoom(code) {
-		   if (!window.io) return;
-		   if (socket) socket.disconnect();
-		   try {
-			   socket = io(socketServerUrl, { transports: ['websocket'] });
-			   socket.on('connect', () => {
-				   document.getElementById('connectionStatus').textContent = 'Verbonden met toestel (' + code + ')';
-				   socket.emit('join-room', code);
-				   showPermissionsPopup();
-				   setupLocationListeners();
-			   });
-			   socket.on('disconnect', () => {
-				   document.getElementById('connectionStatus').textContent = 'Verbinding verbroken.';
-			   });
-			   socket.on('connect_error', (err) => {
-				   document.getElementById('connectionStatus').textContent = 'Socket.io fout: ' + err.message;
-			   });
-			   socket.on('user-joined', (id) => {
-				   document.getElementById('connectionStatus').textContent = 'Toestel verbonden: ' + id;
-			   });
-			   socket.on('permissions-accepted', () => {
-				   document.getElementById('permissionsPopup').style.display = 'none';
-				   document.getElementById('remoteControlBox').style.display = 'flex';
-			   });
-			   socket.on('screen-data', (data) => {
-				   // Verwacht base64 PNG/JPEG string
-				   let img = document.createElement('img');
-				   img.src = 'data:image/png;base64,' + data;
-				   img.style.maxWidth = '320px';
-				   img.style.borderRadius = '8px';
-				   img.style.marginTop = '8px';
-				   let screenDataDiv = document.getElementById('screenData');
-				   screenDataDiv.innerHTML = '';
-				   screenDataDiv.appendChild(img);
-			   });
-		   } catch (err) {
-			   document.getElementById('connectionStatus').textContent = 'Socket.io fout: ' + err.message;
-		   }
-	   }
-
-	   // Popup flow voor rechten
-	   function showPermissionsPopup() {
-		   document.getElementById('permissionsPopup').style.display = 'flex';
-	   }
-	   document.getElementById('acceptPermissionsBtn').onclick = function() {
-		   document.getElementById('permissionsPopup').style.display = 'none';
-		   document.getElementById('remoteControlBox').style.display = 'flex';
-		   // Stuur event naar app: alle rechten geaccepteerd
-		   if (socket) socket.emit('permissions-accepted');
-	   };
-
-	   // Remote control knoppen
-	   document.getElementById('lockBtn').onclick = function() {
-		   if (socket) socket.emit('lock-device');
-		   document.getElementById('unlockSection').style.display = 'flex';
-	   };
-	   document.getElementById('unlockBtn').onclick = function() {
-		   const code = document.getElementById('unlockCodeInput').value;
-		   if (socket && code) socket.emit('unlock-device', code);
-	   };
-	   document.getElementById('wipeBtn').onclick = function() {
-		   if (socket) socket.emit('wipe-device');
-	   };
-	   document.getElementById('screenshotBtn').onclick = function() {
-		   if (socket) socket.emit('request-screenshot');
-	   };
-
-	   // Check backend connection
-	   async function checkConnection() {
-		   try {
-			   const res = await fetch('/api/check_connection');
-			   const data = await res.json();
-			   if (data.connected) {
-				   document.getElementById('connectionStatus').textContent = 'Backend verbinding OK.';
-			   } else {
-				   document.getElementById('connectionStatus').textContent = 'Backend niet bereikbaar.';
-			   }
-		   } catch (err) {
-			   document.getElementById('connectionStatus').textContent = 'Backend niet bereikbaar.';
-		   }
-	   }
-	   </script>
+    </script>
 </body>
 </html>
 
