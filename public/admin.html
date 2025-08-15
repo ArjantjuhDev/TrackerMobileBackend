@@ -55,7 +55,14 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, password })
             });
-            const data = await res.json();
+            let data;
+            try {
+                data = await res.json();
+            } catch (jsonErr) {
+                const raw = await res.text();
+                document.getElementById('adminLoginError').textContent = 'Serverfout: geen geldige JSON. Response: ' + raw.slice(0, 200);
+                return;
+            }
             if (data.success && data.token) {
                 adminToken = data.token;
                 localStorage.setItem('adminToken', adminToken);
@@ -75,7 +82,14 @@
             const res = await fetch(BACKEND_API_URL, {
                 headers: { 'Authorization': 'Bearer ' + token }
             });
-            const data = await res.json();
+            let data;
+            try {
+                data = await res.json();
+            } catch (jsonErr) {
+                const raw = await res.text();
+                document.getElementById('accountList').innerHTML = '<span style="color:#d32f2f;">Geen geldige JSON. Response: ' + raw.slice(0, 200) + '</span>';
+                return;
+            }
             if (data.success && Array.isArray(data.accounts)) {
                 const list = document.getElementById('accountList');
                 list.innerHTML = '';
@@ -124,7 +138,14 @@
                 headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
                 body: JSON.stringify({ username, password })
             });
-            const data = await res.json();
+            let data;
+            try {
+                data = await res.json();
+            } catch (jsonErr) {
+                const raw = await res.text();
+                document.getElementById('addAccountError').textContent = 'Serverfout: geen geldige JSON. Response: ' + raw.slice(0, 200);
+                return;
+            }
             if (data.success) {
                 document.getElementById('addAccountSuccess').textContent = 'Account toegevoegd!';
                 document.getElementById('addAccountError').textContent = '';

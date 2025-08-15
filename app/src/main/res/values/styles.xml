@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowBackground">#181a20</item>
+        <item name="android:colorBackground">#181a20</item>
+        <item name="android:colorPrimary">#1976d2</item>
+        <item name="android:colorPrimaryDark">#0d47a1</item>
+        <item name="android:colorAccent">#388e3c</item>
+    <item name="android:buttonStyle">@style/Widget.AppCompat.Button.Colored</item>
+        <item name="android:fontFamily">sans-serif</item>
+    </style>
+</resources>

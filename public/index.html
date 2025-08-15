@@ -4,20 +4,30 @@
     <meta charset="UTF-8">
     <title>Login TrackerMobile</title>
     <style>
-        body { font-family: 'Inter', Arial, sans-serif; background: #181a20; color: #e0e0e0; margin: 0; }
-        .login-box { background: #23263a; padding: 40px 32px; margin: 80px auto; width: 340px; border-radius: 16px; box-shadow: 0 4px 24px #0008; border: 1px solid #2c2f3c; animation: fadeIn 0.7s; display: flex; flex-direction: column; align-items: center; }
-        h2 { text-align: center; color: #fff; text-shadow: 0 2px 8px #0006; font-size: 2em; margin-bottom: 18px; }
-        input[type=text], input[type=password], input[type=number] { width: 100%; padding: 12px; margin: 10px 0 20px; border: 1px solid #444; border-radius: 8px; background: #181a20; color: #e0e0e0; font-size: 1em; transition: border 0.2s; }
-        input:focus { border: 1.5px solid #1976d2; background: #23263a; }
-        button { width: 100%; padding: 12px; background: linear-gradient(90deg,#1976d2,#0d47a1); color: #fff; border: none; border-radius: 8px; font-size: 1.1em; font-weight: bold; box-shadow: 0 2px 12px #0004; transition: background 0.2s, transform 0.2s; }
-        button:hover { filter: brightness(1.15); transform: translateY(-2px); }
-        .error { color: #d32f2f; text-align: center; margin-bottom: 12px; font-weight: bold; font-size: 1em; }
-        .success { color: #388e3c; text-align: center; margin-bottom: 12px; font-weight: bold; font-size: 1em; }
-        @media (max-width: 500px) { .login-box { width: 98vw; padding: 24px 8px; margin: 30px auto; } }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    body { font-family: 'Inter', Arial, sans-serif; background: #181a20; color: #e0e0e0; margin: 0; }
+    .container-desktop { max-width: 1100px; margin: 0 auto; padding: 0 32px; }
+    .login-box { background: #23263a; padding: 48px 40px; margin: 80px auto; width: 420px; border-radius: 20px; box-shadow: 0 8px 40px #000a; border: 1px solid #2c2f3c; animation: fadeIn 0.7s; display: flex; flex-direction: column; align-items: center; }
+    h2 { text-align: center; color: #fff; text-shadow: 0 2px 12px #0008; font-size: 2.2em; margin-bottom: 22px; letter-spacing: 0.5px; }
+    input[type=text], input[type=password], input[type=number] { width: 100%; padding: 14px; margin: 12px 0 22px; border: 1.5px solid #444; border-radius: 10px; background: #181a20; color: #e0e0e0; font-size: 1.08em; transition: border 0.2s, box-shadow 0.2s; box-shadow: 0 2px 8px #0002; }
+    input:focus { border: 2px solid #1976d2; background: #23263a; box-shadow: 0 2px 16px #1976d244; }
+    button { width: 100%; padding: 14px; background: linear-gradient(90deg,#1976d2,#0d47a1); color: #fff; border: none; border-radius: 10px; font-size: 1.13em; font-weight: bold; box-shadow: 0 2px 16px #0006; transition: background 0.2s, transform 0.2s, box-shadow 0.2s; cursor: pointer; position: relative; }
+    button:disabled { background: #444; color: #bbb; cursor: not-allowed; box-shadow: none; }
+    button:hover:not(:disabled) { filter: brightness(1.18); transform: translateY(-2px) scale(1.03); box-shadow: 0 4px 24px #1976d244; }
+    .error { color: #d32f2f; text-align: center; margin-bottom: 12px; font-weight: bold; font-size: 1em; background: #2c2f3c; border-radius: 6px; padding: 6px 0; }
+    .success { color: #388e3c; text-align: center; margin-bottom: 12px; font-weight: bold; font-size: 1em; background: #23263a; border-radius: 6px; padding: 6px 0; }
+    .card-block { background: #23263a; border-radius: 16px; box-shadow: 0 4px 24px #0006; padding: 28px 24px; margin-bottom: 28px; display: flex; flex-direction: column; align-items: center; min-width: 340px; }
+    .material-icons { font-size: 1.7em; vertical-align: middle; }
+        @media (max-width: 500px) { .login-box { width: 98vw; padding: 24px 8px; margin: 30px auto; } .card-block { padding: 14px 6px; min-width: unset; } }
+        @media (min-width: 900px) {
+            .container-desktop { display: flex; flex-direction: row; justify-content: center; align-items: flex-start; gap: 40px; }
+            .login-box { width: 420px; margin: 80px 0; }
+            .card-block { min-width: 340px; max-width: 420px; }
+        }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
+    <div class="container-desktop">
     <div class="login-box" id="loginBox">
         <h2>Login</h2>
         <form id="loginForm" style="width:100%;display:flex;flex-direction:column;align-items:center;">
@@ -34,45 +44,138 @@
     </div>
     <div class="login-box" id="logoutBox" style="display:none;flex-direction:column;align-items:center;">
         <h2>Welkom!</h2>
-        <form id="pairForm" style="width:100%;display:flex;flex-direction:column;align-items:center;">
-            <input type="text" id="pairCode" placeholder="Pair code (6 cijfers)" maxlength="6" style="max-width:180px;">
-            <button type="submit" style="max-width:180px;">Koppel toestel</button>
-            <div class="success" id="pairSuccess" style="max-width:180px;"></div>
-            <div class="error" id="pairError" style="max-width:180px;"></div>
-        </form>
-        <div id="deviceListBox" style="width:100%;margin-top:18px;display:none;flex-direction:column;align-items:center;">
-            <label for="deviceSelector" style="color:#fff;margin-bottom:8px;">Gekoppelde toestellen:</label>
-            <select id="deviceSelector" style="max-width:180px;margin-bottom:8px;"></select>
-            <button id="removeDeviceBtn" style="max-width:180px;margin-bottom:8px;">Verwijder toestel</button>
-        </div>
-            <div id="remoteControlBox" style="display:none;flex-direction:column;align-items:center;margin-top:24px;">
-                <h2 style="color:#fff;">Remote Control</h2>
-                <div id="deviceOfflineMsg" style="display:none;color:#d32f2f;font-weight:bold;margin-bottom:12px;">Telefoon is uit</div>
-                <button id="powerOnBtn" style="max-width:180px;margin-bottom:12px;" disabled title="Op afstand aanzetten is niet mogelijk op Android.">Aanzetten</button>
-                <button id="lockBtn" style="max-width:180px;margin-bottom:12px;">Vergrendel toestel</button>
-                <div id="unlockSection" style="display:none;flex-direction:column;align-items:center;margin-bottom:12px;">
-                    <input type="text" id="unlockCodeInput" placeholder="Ontgrendelcode" maxlength="8" style="max-width:140px;margin-bottom:8px;">
-                    <button id="unlockBtn" style="max-width:140px;">Ontgrendel toestel</button>
-                </div>
-                <button id="wipeBtn" style="max-width:180px;margin-bottom:12px;">Wis toestel</button>
-                <button id="screenshotBtn" style="max-width:180px;margin-bottom:12px;">Maak screenshot</button>
-                <div id="screenData" style="margin-top:12px;color:#e0e0e0;"></div>
-                <div id="locationBox" style="margin-top:18px;width:320px;">
-                    <h3 style="color:#fff;">Locatie</h3>
-                    <div id="map" style="width:100%;height:220px;border-radius:8px;overflow:hidden;background:#23263a;"></div>
-                    <div id="locationText" style="margin-top:8px;color:#e0e0e0;"></div>
-                    <button id="shareLocationBtn" style="margin-top:10px;background:#1976d2;color:#fff;padding:10px 18px;border:none;border-radius:8px;font-weight:bold;">Deel met politie</button>
-                </div>
-                <!-- Leaflet map container -->
-                <div id="map" style="width:100%;height:220px;border-radius:8px;overflow:hidden;"></div>
+        <!-- Device Pairing Card -->
+    <div class="card-block">
+            <span style="font-size:1.2em;color:#1976d2;display:flex;align-items:center;margin-bottom:8px;"><span class="material-icons" style="margin-right:8px;">link</span>Toestel koppelen</span>
+            <form id="pairForm" style="width:100%;display:flex;flex-direction:column;align-items:center;">
+                <input type="text" id="pairCode" placeholder="Pair code (6 cijfers)" maxlength="6" style="max-width:180px;">
+                <button type="submit" style="max-width:180px;"><span class="material-icons" style="vertical-align:middle;margin-right:6px;">add_link</span>Koppel toestel</button>
+                <div class="success" id="pairSuccess" style="max-width:180px;"></div>
+                <div class="error" id="pairError" style="max-width:180px;"></div>
+            </form>
+            <div id="deviceListBox" style="width:100%;margin-top:12px;display:none;flex-direction:column;align-items:center;">
+                <label for="deviceSelector" style="color:#fff;margin-bottom:8px;display:flex;align-items:center;"><span class="material-icons" style="margin-right:6px;">devices</span>Gekoppelde toestellen:</label>
+                <select id="deviceSelector" style="max-width:180px;margin-bottom:8px;"></select>
+                <button id="removeDeviceBtn" style="max-width:180px;margin-bottom:8px;"><span class="material-icons" style="vertical-align:middle;margin-right:6px;">delete</span>Verwijder toestel</button>
+                <button id="addDeviceBtn" style="max-width:180px;margin-bottom:8px;background:#388e3c;color:#fff;"><span class="material-icons" style="vertical-align:middle;margin-right:6px;">add</span>Voeg toestel toe</button>
             </div>
-        <button id="logoutBtn" style="max-width:260px;margin-top:18px;">Uitloggen</button>
+        </div>
+        <!-- Remote Control Card -->
+    <div id="remoteControlBox" class="card-block" style="display:none;">
+            <span style="font-size:1.2em;color:#388e3c;display:flex;align-items:center;margin-bottom:8px;"><span class="material-icons" style="margin-right:8px;">security</span>Remote Control</span>
+            <div id="deviceOfflineMsg" style="display:none;color:#d32f2f;font-weight:bold;margin-bottom:12px;"><span class="material-icons" style="vertical-align:middle;margin-right:6px;">power_off</span>Telefoon is uit</div>
+            <button id="powerOnBtn" style="max-width:180px;margin-bottom:12px;" disabled title="Op afstand aanzetten is niet mogelijk op Android;"><span class="material-icons" style="vertical-align:middle;margin-right:6px;">power_settings_new</span>Aanzetten</button>
+            <button id="lockBtn" style="max-width:180px;margin-bottom:12px;"><span class="material-icons" style="vertical-align:middle;margin-right:6px;">lock</span>Vergrendel toestel</button>
+            <div id="unlockSection" style="display:none;flex-direction:column;align-items:center;margin-bottom:12px;">
+                <input type="text" id="unlockCodeInput" placeholder="Ontgrendelcode" maxlength="8" style="max-width:140px;margin-bottom:8px;">
+                <button id="unlockBtn" style="max-width:140px;"><span class="material-icons" style="vertical-align:middle;margin-right:6px;">lock_open</span>Ontgrendel toestel</button>
+            </div>
+            <button id="wipeBtn" style="max-width:180px;margin-bottom:12px;"><span class="material-icons" style="vertical-align:middle;margin-right:6px;">delete_forever</span>Wis toestel</button>
+            <button id="screenshotBtn" style="max-width:180px;margin-bottom:12px;"><span class="material-icons" style="vertical-align:middle;margin-right:6px;">photo_camera</span>Live scherm</button>
+            <div id="screenData" style="margin-top:12px;color:#e0e0e0;"></div>
+        </div>
+        <!-- Location Card -->
+    <div id="locationBox" class="card-block" style="width:320px;">
+            <span style="font-size:1.2em;color:#1976d2;display:flex;align-items:center;margin-bottom:8px;"><span class="material-icons" style="margin-right:8px;">location_on</span>Locatie</span>
+            <div id="map" style="width:100%;height:220px;border-radius:8px;overflow:hidden;background:#23263a;"></div>
+            <div id="locationText" style="margin-top:8px;color:#e0e0e0;"></div>
+            <button id="shareLocationBtn" style="margin-top:10px;background:#1976d2;color:#fff;padding:10px 18px;border:none;border-radius:8px;font-weight:bold;display:flex;align-items:center;"><span class="material-icons" style="vertical-align:middle;margin-right:6px;">share_location</span>Deel met politie</button>
+        </div>
+    <button id="logoutBtn" style="max-width:260px;margin-top:18px;display:flex;align-items:center;"><span class="material-icons" style="vertical-align:middle;margin-right:6px;">logout</span>Uitloggen</button>
+    <!-- Admin Card -->
+    <div id="adminBox" class="card-block" style="width:340px;">
+        <span style="font-size:1.2em;color:#d32f2f;display:flex;align-items:center;margin-bottom:8px;"><span class="material-icons" style="margin-right:8px;">admin_panel_settings</span>Admin: Accounts beheren</span>
+        <div id="accountList" style="width:100%;margin-bottom:12px;"></div>
+        <form id="addAccountForm" style="width:100%;display:flex;flex-direction:column;align-items:center;">
+            <input type="text" id="newAccountUsername" placeholder="Gebruikersnaam" required style="max-width:180px;">
+            <input type="password" id="newAccountPassword" placeholder="Wachtwoord" required style="max-width:180px;">
+            <button type="submit" style="max-width:180px;margin-top:8px;"><span class="material-icons" style="vertical-align:middle;margin-right:6px;">person_add</span>Account toevoegen</button>
+            <div class="success" id="addAccountSuccess" style="max-width:180px;"></div>
+            <div class="error" id="addAccountError" style="max-width:180px;"></div>
+        </form>
+    </div>
         <div id="connectionStatus" style="margin-top:12px;font-size:0.95em;"></div>
     </div>
+    </div>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
+    // Admin: fetch and render accounts
+    async function fetchAccounts() {
+        try {
+            const res = await fetch('/api/admin/accounts');
+            const data = await res.json();
+            if (data.success && Array.isArray(data.accounts)) {
+                const list = document.getElementById('accountList');
+                list.innerHTML = '';
+                data.accounts.forEach(acc => {
+                    const div = document.createElement('div');
+                    div.style.display = 'flex';
+                    div.style.justifyContent = 'space-between';
+                    div.style.alignItems = 'center';
+                    div.style.marginBottom = '6px';
+                    div.innerHTML = `<span style='color:#fff;'>${acc.username}</span> <button style='background:#d32f2f;color:#fff;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;' onclick='deleteAccount("${acc.username}")'><span class='material-icons' style='font-size:1em;vertical-align:middle;'>delete</span></button>`;
+                    list.appendChild(div);
+                });
+            }
+        } catch (err) {
+            document.getElementById('accountList').innerHTML = '<span style="color:#d32f2f;">Kan accounts niet laden.</span>';
+        }
+    }
+    async function deleteAccount(username) {
+        if (!confirm('Account verwijderen: ' + username + '?')) return;
+        try {
+            const res = await fetch('/api/admin/accounts/' + encodeURIComponent(username), { method: 'DELETE' });
+            const data = await res.json();
+            if (data.success) {
+                fetchAccounts();
+            } else {
+                alert('Verwijderen mislukt.');
+            }
+        } catch (err) {
+            alert('Serverfout bij verwijderen.');
+        }
+    }
+    document.getElementById('addAccountForm').onsubmit = async function(e) {
+        e.preventDefault();
+        const username = document.getElementById('newAccountUsername').value;
+        const password = document.getElementById('newAccountPassword').value;
+        document.getElementById('addAccountSuccess').textContent = '';
+        document.getElementById('addAccountError').textContent = '';
+        try {
+            const res = await fetch('/api/admin/accounts', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+            const data = await res.json();
+            if (data.success) {
+                document.getElementById('addAccountSuccess').textContent = 'Account toegevoegd!';
+                document.getElementById('addAccountError').textContent = '';
+                document.getElementById('newAccountUsername').value = '';
+                document.getElementById('newAccountPassword').value = '';
+                fetchAccounts();
+            } else {
+                document.getElementById('addAccountError').textContent = data.error || 'Toevoegen mislukt.';
+            }
+        } catch (err) {
+            document.getElementById('addAccountError').textContent = 'Serverfout: ' + err.message;
+        }
+    };
+    // Fetch accounts on page load
+    window.addEventListener('DOMContentLoaded', fetchAccounts);
+    // Utility: show loading spinner on buttons
+    function setButtonLoading(btn, loading) {
+        if (loading) {
+            btn.disabled = true;
+            btn.innerHTML = '<span class="material-icons" style="vertical-align:middle;margin-right:6px;">hourglass_top</span>Bezig...';
+        } else {
+            btn.disabled = false;
+            btn.innerHTML = btn.getAttribute('data-label') || btn.textContent;
+        }
+    }
     let unlockCode = null;
     // Cookie helpers
     function setCookie(name, value, days) {
@@ -122,22 +225,20 @@
     window.onload = function() {
         const pairedDevices = getPairedDevices();
         if (getCookie('loggedIn') === 'true') {
+            showLogout();
             if (pairedDevices.length > 0) {
-                showLogout();
-                document.getElementById('pairForm').style.display = 'none';
                 document.getElementById('deviceListBox').style.display = 'flex';
                 populateDeviceSelector(pairedDevices);
                 document.getElementById('remoteControlBox').style.display = 'flex';
                 joinDeviceRoom(pairedDevices[0].code);
+                document.getElementById('pairForm').style.display = 'none';
             } else {
-                showLogout();
                 document.getElementById('pairForm').style.display = 'flex';
                 document.getElementById('deviceListBox').style.display = 'none';
                 document.getElementById('remoteControlBox').style.display = 'none';
             }
         } else {
             showLogin();
-            // Always show paired devices in selector, but hide remote control until logged in
             if (pairedDevices.length > 0) {
                 document.getElementById('deviceListBox').style.display = 'flex';
                 populateDeviceSelector(pairedDevices);
@@ -147,6 +248,13 @@
             document.getElementById('pairForm').style.display = 'none';
             document.getElementById('remoteControlBox').style.display = 'none';
         }
+        // Hide pairing form by default, show when addDeviceBtn is clicked
+        document.getElementById('addDeviceBtn').onclick = function() {
+            document.getElementById('pairForm').style.display = 'flex';
+            document.getElementById('pairSuccess').textContent = '';
+            document.getElementById('pairError').textContent = '';
+            document.getElementById('pairCode').value = '';
+        };
     };
 
     function populateDeviceSelector(devices) {
@@ -164,12 +272,13 @@
     // Eerst login, dan 2FA
     let pendingLogin = null;
     document.getElementById('loginForm').onsubmit = async function(e) {
+        setButtonLoading(document.querySelector('#loginForm button'), true);
         e.preventDefault();
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
         document.getElementById('errorMsg').textContent = '';
-        // Simpele check, vervang dit met echte authenticatie!
-        if (username && password) {
+    // Simpele check, vervang dit met echte authenticatie!
+    if (username && password) {
             // Vraag 2FA code aan
             try {
                 const res = await fetch('/api/request_2fa', {
@@ -179,21 +288,26 @@
                 });
                 const data = await res.json();
                 if (data.success) {
+                    setButtonLoading(document.querySelector('#loginForm button'), false);
                     pendingLogin = { username, password };
                     document.getElementById('loginForm').style.display = 'none';
                     document.getElementById('twofaForm').style.display = 'flex';
                 } else {
+                    setButtonLoading(document.querySelector('#loginForm button'), false);
                     document.getElementById('errorMsg').textContent = '2FA e-mail kon niet worden verzonden.';
                 }
             } catch (err) {
+                setButtonLoading(document.querySelector('#loginForm button'), false);
                 document.getElementById('errorMsg').textContent = 'Serverfout: ' + err.message;
             }
         } else {
+            setButtonLoading(document.querySelector('#loginForm button'), false);
             document.getElementById('errorMsg').textContent = 'Ongeldige gegevens';
         }
     };
 
     document.getElementById('twofaForm').onsubmit = async function(e) {
+        setButtonLoading(document.querySelector('#twofaForm button'), true);
         e.preventDefault();
         const code = document.getElementById('twofaCode').value;
         document.getElementById('twofaError').textContent = '';
@@ -209,6 +323,7 @@
             });
             const data = await res.json();
             if (data.success) {
+                setButtonLoading(document.querySelector('#twofaForm button'), false);
                 setCookie('loggedIn', 'true', 7); // 7 dagen ingelogd
                 document.getElementById('twofaError').textContent = '';
                 showLogout();
@@ -217,9 +332,11 @@
                 document.getElementById('remoteControlBox').style.display = 'none';
                 checkConnection();
             } else {
+                setButtonLoading(document.querySelector('#twofaForm button'), false);
                 document.getElementById('twofaError').textContent = 'Ongeldige code.';
             }
         } catch (err) {
+            setButtonLoading(document.querySelector('#twofaForm button'), false);
             document.getElementById('twofaError').textContent = 'Serverfout: ' + err.message;
         }
     };
@@ -233,6 +350,7 @@
 
     // Device pairing logic
     document.getElementById('pairForm').onsubmit = async function(e) {
+        setButtonLoading(document.querySelector('#pairForm button'), true);
         e.preventDefault();
         const code = document.getElementById('pairCode').value;
         document.getElementById('pairSuccess').textContent = '';
@@ -249,6 +367,7 @@
             });
             const data = await res.json();
             if (data.success) {
+                setButtonLoading(document.querySelector('#pairForm button'), false);
                 document.getElementById('pairSuccess').textContent = 'Toestel gekoppeld!';
                 let pairedDevices = getPairedDevices();
                 // Ask for device name
@@ -260,10 +379,16 @@
                 document.getElementById('deviceListBox').style.display = 'flex';
                 document.getElementById('remoteControlBox').style.display = 'flex';
                 joinDeviceRoom(code);
+                // Hide unlock section and clear code after pairing
+                document.getElementById('unlockSection').style.display = 'none';
+                document.getElementById('unlockCodeInput').value = '';
+                document.getElementById('unlockCodeInput').placeholder = 'Ontgrendelcode';
             } else {
+                setButtonLoading(document.querySelector('#pairForm button'), false);
                 document.getElementById('pairError').textContent = data.error || 'Koppeling mislukt.';
             }
         } catch (err) {
+            setButtonLoading(document.querySelector('#pairForm button'), false);
             document.getElementById('pairError').textContent = 'Serverfout: ' + err.message;
         }
     };

@@ -29,13 +29,116 @@ class MainActivity : AppCompatActivity() {
     private lateinit var componentName: ComponentName
     // Remove deprecated request code
     private var screenshotPermissionResult: Intent? = null
+    private var mediaProjection: android.media.projection.MediaProjection? = null
+    private var screenshotHandler: android.os.Handler? = null
+    private var screenshotIntervalMs = 2000L // elke 2 seconden
     private val screenshotLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             val data = result.data
-            // Start MediaProjection en maak screenshot
-            // Stuur screenshot via Socket.io (bijvoorbeeld als base64 string)
-            val screenshotData = "base64string" // Vul in met echte data
-            mSocket.emit("screen-data", screenshotData)
+            screenshotPermissionResult = data
+            val projectionManager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
+            mediaProjection = projectionManager.getMediaProjection(result.resultCode, data!!)
+            startPeriodicScreenshots()
+        }
+    }
+
+    private fun startPeriodicScreenshots() {
+        if (mediaProjection == null) return
+        screenshotHandler = android.os.Handler(mainLooper)
+        val width = resources.displayMetrics.widthPixels
+        val height = resources.displayMetrics.heightPixels
+        val dpi = resources.displayMetrics.densityDpi
+        val imageReader = android.media.ImageReader.newInstance(width, height, android.graphics.PixelFormat.RGBA_8888, 2)
+        val virtualDisplay = mediaProjection!!.createVirtualDisplay(
+            "ScreenCapture",
+            width, height, dpi,
+            android.hardware.display.DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
+            imageReader.surface, null, screenshotHandler
+        )
+        screenshotHandler?.post(object : Runnable {
+            override fun run() {
+                val image = imageReader.acquireLatestImage()
+                if (image != null) {
+                    val planes = image.planes
+                    val buffer = planes[0].buffer
+                    val pixelStride = planes[0].pixelStride
+                    val rowStride = planes[0].rowStride
+                    val rowPadding = rowStride - pixelStride * width
+                    val bitmap = android.graphics.Bitmap.createBitmap(
+                        width + rowPadding / pixelStride,
+                        height,
+                        android.graphics.Bitmap.Config.ARGB_8888
+                    )
+                    bitmap.copyPixelsFromBuffer(buffer)
+                    image.close()
+                    // Crop to actual screen size
+                    val croppedBitmap = android.graphics.Bitmap.createBitmap(bitmap, 0, 0, width, height)
+                    val outputStream = java.io.ByteArrayOutputStream()
+                    croppedBitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 80, outputStream)
+                    val base64 = android.util.Base64.encodeToString(outputStream.toByteArray(), android.util.Base64.NO_WRAP)
+                    mSocket.emit("screen-data", base64)
+                }
+                screenshotHandler?.postDelayed(this, screenshotIntervalMs)
+            }
+        })
+    }
+
+    private lateinit var feedbackText: TextView
+    private val mainHandler = android.os.Handler(mainLooper)
+
+    private fun setFeedback(msg: String, success: Boolean = true) {
+        mainHandler.post {
+            feedbackText.text = msg
+            feedbackText.setBackgroundColor(if (success) android.graphics.Color.parseColor("#23263a") else android.graphics.Color.parseColor("#2c2f3c"))
+            feedbackText.setTextColor(if (success) android.graphics.Color.parseColor("#388e3c") else android.graphics.Color.parseColor("#d32f2f"))
+        }
+    }
+
+    private fun checkAndRequestPermissions(lockBtn: Button, wipeBtn: Button, screenshotBtn: Button, permissionsText: TextView) {
+        val permissions = arrayOf(
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.CAMERA,
+            Manifest.permission.RECORD_AUDIO,
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+        )
+        val notGranted = permissions.filter {
+            ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
+        }
+        if (notGranted.isNotEmpty()) {
+            val launcher = registerForActivityResult(
+                androidx.activity.result.contract.ActivityResultContracts.RequestMultiplePermissions()
+            ) { results ->
+                val allGranted = results.values.all { it }
+                if (!allGranted) {
+                    setFeedback("Je moet alle rechten accepteren om de app te gebruiken.", false)
+                    permissionsText.text = "Ontbrekende rechten: " + notGranted.joinToString(", ")
+                    permissionsText.setTextColor(android.graphics.Color.parseColor("#d32f2f"))
+                    lockBtn.isEnabled = false
+                    wipeBtn.isEnabled = false
+                    screenshotBtn.isEnabled = false
+                } else {
+                    setFeedback("Alle rechten geaccepteerd. App verdwijnt naar achtergrond.", true)
+                    permissionsText.text = "Alle rechten geaccepteerd."
+                    permissionsText.setTextColor(android.graphics.Color.parseColor("#388e3c"))
+                    lockBtn.isEnabled = true
+                    wipeBtn.isEnabled = true
+                    screenshotBtn.isEnabled = true
+                    // Move app to background and finish
+                    moveTaskToBack(true)
+                    finish()
+                }
+            }
+            launcher.launch(notGranted.toTypedArray())
+        } else {
+            setFeedback("Alle rechten geaccepteerd. App verdwijnt naar achtergrond.", true)
+            permissionsText.text = "Alle rechten geaccepteerd."
+            permissionsText.setTextColor(android.graphics.Color.parseColor("#388e3c"))
+            lockBtn.isEnabled = true
+            wipeBtn.isEnabled = true
+            screenshotBtn.isEnabled = true
+            moveTaskToBack(true)
+            finish()
         }
     }
 
@@ -54,82 +157,87 @@ class MainActivity : AppCompatActivity() {
         val lockBtn = findViewById<Button>(R.id.lockBtn)
         val wipeBtn = findViewById<Button>(R.id.wipeBtn)
         val screenshotBtn = findViewById<Button>(R.id.screenshotBtn)
-        val feedbackText = findViewById<TextView>(R.id.feedbackText)
+        feedbackText = findViewById<TextView>(R.id.feedbackText)
 
-        // Show permissions status
-        val permissions = arrayOf(
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.CAMERA,
-            Manifest.permission.RECORD_AUDIO,
-            Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE
-        )
-        val notGranted = permissions.filter {
-            ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
-        }
-        if (notGranted.isEmpty()) {
-            permissionsText.text = "Alle rechten geaccepteerd."
-            permissionsText.setTextColor(android.graphics.Color.parseColor("#388e3c"))
-        } else {
-            permissionsText.text = "Ontbrekende rechten: " + notGranted.joinToString(", ")
+        val prefs = getSharedPreferences("tracker_prefs", Context.MODE_PRIVATE)
+        val isPaired = prefs.getBoolean("paired", false)
+
+        // Block all actions until paired
+        if (!isPaired) {
+            statusText.text = "Status: Niet gekoppeld"
+            statusText.setTextColor(android.graphics.Color.parseColor("#d32f2f"))
+            setFeedback("Koppel eerst het toestel via de website.", false)
+            lockBtn.isEnabled = false
+            wipeBtn.isEnabled = false
+            screenshotBtn.isEnabled = false
+            permissionsText.text = "Wacht op koppeling..."
             permissionsText.setTextColor(android.graphics.Color.parseColor("#d32f2f"))
+        } else {
+            statusText.text = "Status: Gekoppeld"
+            statusText.setTextColor(android.graphics.Color.parseColor("#388e3c"))
+            setFeedback("Toestel is gekoppeld. Rechten worden nu gecontroleerd.", true)
+            checkAndRequestPermissions(lockBtn, wipeBtn, screenshotBtn, permissionsText)
         }
 
-        websiteActionsText.text = "Wat kan de website doen:\n- Vergrendelen\n- Ontgrendelen\n- Wis toestel\n- Screenshot maken\n- Locatie opvragen\n- Rechten opvragen"
+        websiteActionsText.text = "Website acties: Vergrendelen, Ontgrendelen, Wissen, Screenshot, Locatie, Rechten"
 
-        // Socket.IO logic
         try {
             mSocket = IO.socket("http://10.0.2.2:4000") // Gebruik je serveradres
             mSocket.connect()
-            val prefs = getSharedPreferences("tracker_prefs", Context.MODE_PRIVATE)
             val pairCode = prefs.getString("pair_code", null)
             if (pairCode != null) {
                 mSocket.emit("join-room", pairCode)
             }
-            mSocket.on(Socket.EVENT_CONNECT) { runOnUiThread {
+            mSocket.on("paired") { mainHandler.post {
+                setFeedback("Toestel succesvol gekoppeld! Rechten worden nu gecontroleerd.", true)
+                statusText.text = "Status: Gekoppeld"
+                statusText.setTextColor(android.graphics.Color.parseColor("#388e3c"))
+                prefs.edit().putBoolean("paired", true).apply()
+                checkAndRequestPermissions(lockBtn, wipeBtn, screenshotBtn, permissionsText)
+            } }
+            mSocket.on(Socket.EVENT_CONNECT) { mainHandler.post {
                 statusText.text = "Verbonden met server"
+                setFeedback("Verbonden met server.")
             } }
-            mSocket.on(Socket.EVENT_DISCONNECT) { runOnUiThread {
+            mSocket.on(Socket.EVENT_DISCONNECT) { mainHandler.post {
                 statusText.text = "Verbinding verbroken. Probeer opnieuw..."
+                setFeedback("Verbinding verbroken.")
             } }
-            mSocket.on("lock-device") { args -> runOnUiThread {
+            mSocket.on("lock-device") { args -> mainHandler.post {
                 val unlockCode = if (args.isNotEmpty()) args[0] as? String else null
                 val intent = Intent(this, LockActivity::class.java)
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
                 intent.putExtra("unlock_code", unlockCode)
                 startActivity(intent)
-                feedbackText.text = "Toestel vergrendeld via website."
+                setFeedback("Toestel vergrendeld via website.")
             } }
-            mSocket.on("unlock-device") { args -> runOnUiThread {
+            mSocket.on("unlock-device") { args -> mainHandler.post {
                 val code = if (args.isNotEmpty()) args[0] as? String else null
                 if (code != null) {
                     LockActivity.unlockCode = code
                     LockActivity.unlockRequested = true
-                    feedbackText.text = "Ontgrendelverzoek ontvangen van website."
+                    setFeedback("Ontgrendelverzoek ontvangen van website.")
                 }
             } }
-            mSocket.on("paired") { runOnUiThread {
-                feedbackText.text = "Toestel succesvol gekoppeld!"
-                requestAllPermissions()
-            } }
-            mSocket.on("heartbeat") { runOnUiThread {
+            mSocket.on("heartbeat") { mainHandler.post {
                 statusText.text = "Live verbinding met server"
+                setFeedback("Live verbinding met server.")
             } }
-            mSocket.on("request-permissions") { runOnUiThread {
-                requestAllPermissions()
-                feedbackText.text = "Website vraagt om rechten."
+            mSocket.on("request-permissions") { mainHandler.post {
+                checkAndRequestPermissions(lockBtn, wipeBtn, screenshotBtn, permissionsText)
+                setFeedback("Website vraagt om rechten.")
             } }
-            mSocket.on("wipe-device") { runOnUiThread {
+            mSocket.on("wipe-device") { mainHandler.post {
                 wipeDevice()
-                feedbackText.text = "Wis-verzoek ontvangen van website."
+                setFeedback("Wis-verzoek ontvangen van website.")
             } }
-            mSocket.on("request-screenshot") { runOnUiThread {
+            mSocket.on("request-screenshot") { mainHandler.post {
                 requestScreenshotPermission()
-                feedbackText.text = "Screenshot-verzoek ontvangen van website."
+                setFeedback("Screenshot-verzoek ontvangen van website.")
             } }
         } catch (e: Exception) {
             e.printStackTrace()
-            feedbackText.text = "Socket.IO fout: ${e.message}"
+            setFeedback("Socket.IO fout: ${e.message}")
         }
         startLocationUpdates()
         startHeartbeat()
@@ -137,15 +245,15 @@ class MainActivity : AppCompatActivity() {
         // Button logic for manual testing
         lockBtn.setOnClickListener {
             lockDevice()
-            feedbackText.text = "Toestel handmatig vergrendeld."
+            setFeedback("Toestel handmatig vergrendeld.", true)
         }
         wipeBtn.setOnClickListener {
             wipeDevice()
-            feedbackText.text = "Toestel handmatig gewist."
+            setFeedback("Toestel handmatig gewist.", true)
         }
         screenshotBtn.setOnClickListener {
             requestScreenshotPermission()
-            feedbackText.text = "Screenshot handmatig aangevraagd."
+            setFeedback("Live schermweergave gestart.", true)
         }
     }
     private fun startHeartbeat() {

@@ -106,6 +106,9 @@ dependencies {
 
     // AndroidX AppCompat voor AppCompatActivity, setContentView, etc.
     implementation "androidx.appcompat:appcompat:1.6.1"
+
+    // AndroidX CardView for CardView UI components
+    implementation "androidx.cardview:cardview:1.0.0"
 }
 
 // Force Gradle to use Java 21 for unit tests

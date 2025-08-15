@@ -40,6 +40,7 @@ class LockActivity : AppCompatActivity() {
         unlockBtn.setOnClickListener {
             val code = codeInput.text.toString()
             if (code == unlockCode) {
+                unlockCode = "" // Clear unlock code after successful unlock
                 finish()
             } else {
                 infoText.text = "Onjuiste code. Probeer opnieuw.\nCode: $unlockCode"
