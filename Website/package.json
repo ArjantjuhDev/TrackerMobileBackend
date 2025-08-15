@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "svelte-kit dev",
     "build": "svelte-kit build",
-    "start": "svelte-kit start"
+  "start": "node build"
   },
   "dependencies": {
     "@sveltejs/kit": "^1.30.4"
