@@ -24,9 +24,20 @@ try {
 }
 
 const app = express();
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'https://tracker-mobile-private.vercel.app',
+  'https://tracker-mobile-backend.onrender.com'
+];
 app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST'],
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error('Not allowed by CORS: ' + origin));
+  },
+  methods: ['GET', 'POST', 'DELETE'],
   credentials: true
 }));
 app.use(express.json());
