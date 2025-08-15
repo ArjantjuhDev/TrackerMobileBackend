@@ -5,6 +5,75 @@
   <title>Login TrackerMobile</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <style>
+    body { font-family: 'Inter', Arial, sans-serif; background: #181a20; color: #e0e0e0; margin: 0; }
+    .login-box { background: #23263a; padding: 40px 32px; margin: 80px auto; width: 340px; border-radius: 16px; box-shadow: 0 4px 24px #0008; border: 1px solid #2c2f3c; animation: fadeIn 0.7s; display: flex; flex-direction: column; align-items: center; }
+    h2 { text-align: center; color: #fff; text-shadow: 0 2px 8px #0006; font-size: 2em; margin-bottom: 18px; }
+    input[type=text], input[type=password], input[type=number] { width: 100%; padding: 12px; margin: 10px 0 20px; border: 1px solid #444; border-radius: 8px; background: #181a20; color: #e0e0e0; font-size: 1em; transition: border 0.2s; }
+    input:focus { border: 1.5px solid #1976d2; background: #23263a; }
+    button { width: 100%; padding: 12px; background: linear-gradient(90deg,#1976d2,#0d47a1); color: #fff; border: none; border-radius: 8px; font-size: 1.1em; font-weight: bold; box-shadow: 0 2px 12px #0004; transition: background 0.2s, transform 0.2s; }
+    button:hover { filter: brightness(1.15); transform: translateY(-2px); }
+    .error { color: #d32f2f; text-align: center; margin-bottom: 12px; font-weight: bold; font-size: 1em; }
+    .success { color: #388e3c; text-align: center; margin-bottom: 12px; font-weight: bold; font-size: 1em; }
+    @media (max-width: 500px) { .login-box { width: 98vw; padding: 24px 8px; margin: 30px auto; } }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+<body>
+  <div class="login-box" id="loginBox">
+    <h2>Login</h2>
+    <form id="loginForm" style="width:100%;display:flex;flex-direction:column;align-items:center;">
+      <input type="text" id="username" placeholder="Gebruikersnaam" required autofocus style="max-width:260px;">
+      <input type="password" id="password" placeholder="Wachtwoord" required style="max-width:260px;">
+      <div class="error" id="errorMsg" style="max-width:260px;"></div>
+      <button type="submit" style="max-width:260px;">Inloggen</button>
+    </form>
+  </div>
+  <div id="dashboard" style="display:none;max-width:600px;margin:40px auto;">
+    <h2 style="text-align:center;margin-bottom:24px;">Toestel Dashboard</h2>
+    <div id="pairingSection" style="margin-bottom:24px;text-align:center;">
+      <div id="pairingInstructions" style="margin-bottom:12px;font-size:1.1em;color:#fff;">
+        Voer hieronder de 6-cijferige code in die op de app wordt getoond om het toestel direct te koppelen.
+      </div>
+      <input type="text" id="appCodeInput" placeholder="App code" maxlength="6" style="width:160px;padding:8px;border-radius:6px;border:1px solid #444;font-size:1.1em;">
+      <button id="pairDeviceBtn" style="margin-left:8px;background:#388e3c;">Koppel toestel</button>
+      <div id="pairDeviceResult" style="margin-top:8px;font-size:1em;"></div>
+    </div>
+    <div id="deviceCard" class="card">
+      <div class="card-header">
+        <div id="statusIcon" class="status-icon"></div>
+        <div>
+          <div id="deviceNameBox" style="margin-bottom:4px;"></div>
+          <div id="deviceId" class="device-id"></div>
+          <div id="deviceState" class="device-state"></div>
+        </div>
+      </div>
+      <div class="card-section">
+        <div id="locationDetails" class="location-details"></div>
+        <div id="mapPreview" class="map-preview"></div>
+      </div>
+      <div class="card-section">
+        <div id="lastAction" class="last-action"></div>
+      </div>
+      <div class="card-actions">
+        <button class="action-btn" id="lockBtn" style="background:#d32f2f;"><span style="font-size:1.2em;">🔒</span> Lock</button>
+        <button class="action-btn" id="unlockBtn" style="background:#388e3c;"><span style="font-size:1.2em;">🔓</span> Unlock</button>
+        <button class="action-btn" id="takeoverBtn" style="background:#1976d2;"><span style="font-size:1.2em;">🕹️</span> Takeover</button>
+      </div>
+      <div id="actionResult" class="action-result"></div>
+    </div>
+  </div>
+  <script>
+    // ...existing code...
+  </script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>Login TrackerMobile</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <style>
   body { font-family: 'Inter', Arial, sans-serif; background: #181a20; color: #e0e0e0; margin: 0; }
   .login-box { background: #23263a; padding: 40px 32px; margin: 80px auto; width: 340px; border-radius: 16px; box-shadow: 0 4px 24px #0008; border: 1px solid #2c2f3c; animation: fadeIn 0.7s; display: flex; flex-direction: column; align-items: center; }
   h2 { text-align: center; color: #fff; text-shadow: 0 2px 8px #0006; font-size: 2em; margin-bottom: 18px; }
