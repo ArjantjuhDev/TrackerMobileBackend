@@ -1,13 +1,15 @@
 {
   "version": 2,
-  "builds": [
-    { "src": "backend/api/*.js", "use": "@vercel/node" },
-  { "src": "public/index.html", "use": "@vercel/static" },
-  { "src": "public/favicon.svg", "use": "@vercel/static" }
+  "rewrites": [
+    { "source": "/api/:match*", "destination": "/backend/api/:match*.js" }
   ],
-  "routes": [
-    { "src": "/api/(.*)", "dest": "backend/api/$1.js" },
-  { "src": "/favicon.svg", "dest": "/public/favicon.svg" },
-  { "src": "/(.*)", "dest": "/public/index.html" }
+  "headers": [
+    {
+      "source": "/components/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" }
+      ]
+    }
   ]
 }

@@ -5,101 +5,205 @@
     <title>Admin Accountbeheer</title>
     <style>
         body { font-family: 'Inter', Arial, sans-serif; background: #181a20; color: #e0e0e0; margin: 0; }
-        .admin-container { max-width: 420px; margin: 80px auto; background: #23263a; border-radius: 18px; box-shadow: 0 6px 32px #000a; border: 1px solid #2c2f3c; padding: 40px 32px; }
-        h2 { text-align: center; color: #fff; font-size: 2em; margin-bottom: 22px; }
-        input[type=text], input[type=password] { width: 100%; padding: 14px; margin: 12px 0 22px; border: 1.5px solid #444; border-radius: 10px; background: #181a20; color: #e0e0e0; font-size: 1.08em; }
-        input:focus { border: 2px solid #1976d2; background: #23263a; }
-        button { width: 100%; padding: 14px; background: linear-gradient(90deg,#1976d2,#0d47a1); color: #fff; border: none; border-radius: 10px; font-size: 1.13em; font-weight: bold; box-shadow: 0 2px 16px #0006; cursor: pointer; }
-        button:disabled { background: #444; color: #bbb; cursor: not-allowed; }
-        .error { color: #d32f2f; text-align: center; margin-bottom: 12px; font-weight: bold; font-size: 1em; }
-        .success { color: #388e3c; text-align: center; margin-bottom: 12px; font-weight: bold; font-size: 1em; }
-        .card-block { background: #23263a; border-radius: 14px; box-shadow: 0 2px 12px #0004; padding: 20px 18px; margin-bottom: 20px; display: flex; flex-direction: column; align-items: center; }
+        .admin-container {
+            max-width: 1100px;
+            margin: 60px auto;
+            background: #23263a;
+            border-radius: 18px;
+            box-shadow: 0 8px 48px #000a;
+            border: 1px solid #2c2f3c;
+            padding: 48px 40px;
+            display: flex;
+            flex-direction: column;
+        }
+        .admin-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            width: 100%;
+        }
+        h2 { text-align: left; color: #1976d2; font-size: 2.2em; margin-bottom: 18px; letter-spacing: 0.5px; }
+        h3 { color: #fff; font-size: 1.3em; margin-bottom: 12px; }
+        input[type=text], input[type=password] {
+            width: 100%;
+            padding: 16px;
+            margin: 12px 0 22px;
+            border: 1.5px solid #444;
+            border-radius: 10px;
+            background: #181a20;
+            color: #e0e0e0;
+            font-size: 1.13em;
+            transition: border 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 8px #0002;
+        }
+        input:focus { border: 2px solid #1976d2; background: #23263a; box-shadow: 0 2px 16px #1976d244; }
+        button {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(90deg,#1976d2,#0d47a1);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.18em;
+            font-weight: bold;
+            box-shadow: 0 2px 16px #0006;
+            cursor: pointer;
+            margin-bottom: 8px;
+        }
+        button:disabled { background: #444; color: #bbb; cursor: not-allowed; box-shadow: none; }
+        .error { color: #d32f2f; text-align: center; margin-bottom: 12px; font-weight: bold; font-size: 1em; background: #2c2f3c; border-radius: 6px; padding: 6px 0; }
+        .success { color: #388e3c; text-align: center; margin-bottom: 12px; font-weight: bold; font-size: 1em; background: #23263a; border-radius: 6px; padding: 6px 0; }
+        .card-block {
+            background: #23263a;
+            border-radius: 16px;
+            box-shadow: 0 4px 24px #0006;
+            padding: 32px 28px;
+            margin-bottom: 28px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            min-width: 340px;
+        }
+        @media (max-width: 900px) {
+            .admin-container { padding: 24px 8px; }
+            .admin-grid { grid-template-columns: 1fr; gap: 0; }
+            .card-block { padding: 18px 8px; min-width: unset; }
+        }
     </style>
 </head>
 <body>
-    <div class="admin-container">
-        <h2>Admin Login</h2>
-        <form id="adminLoginForm" style="width:100%;display:none;flex-direction:column;align-items:center;">
-            <input type="text" id="adminUsername" placeholder="Gebruikersnaam" required autofocus>
-            <input type="password" id="adminPassword" placeholder="Wachtwoord" required>
-            <div class="error" id="adminLoginError"></div>
-            <button type="submit">Inloggen</button>
-        </form>
-        <div id="adminPanel" style="display:none;">
-            <h2>Accountbeheer</h2>
-            <button id="adminLogoutBtn" style="width:100%;margin-bottom:18px;background:#d32f2f;color:#fff;border:none;border-radius:10px;padding:12px;font-weight:bold;">Uitloggen</button>
-            <div id="accountList" style="width:100%;margin-bottom:12px;"></div>
-            <form id="addAccountForm" style="width:100%;display:flex;flex-direction:column;align-items:center;">
-                <input type="text" id="newAccountUsername" placeholder="Gebruikersnaam" required>
-                <input type="password" id="newAccountPassword" placeholder="Wachtwoord" required>
-                <button type="submit" style="margin-top:8px;">Account toevoegen</button>
-                <div class="success" id="addAccountSuccess"></div>
-                <div class="error" id="addAccountError"></div>
-            </form>
-        </div>
+    <div style="display:flex;min-height:100vh;">
+        <div id="sidebar-container"></div>
+        <main class="admin-container" style="max-width:900px;margin:48px auto 48px 0;">
+            <h2 style="color:#d32f2f;">Accountbeheer</h2>
+            <div id="login-form-container"></div>
+            <div id="adminPanel" style="display:none;">
+                <div class="admin-grid">
+                    <div id="account-list-container"></div>
+                    <div id="add-account-form-container"></div>
+                </div>
+            </div>
+        </main>
     </div>
     <script>
+    // Dynamically import components and inject into containers
+    async function importComponent(containerId, componentPath) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        try {
+            const res = await fetch(componentPath);
+            const html = await res.text();
+            container.innerHTML = html;
+        } catch (err) {
+            container.innerHTML = `<div style='color:#d32f2f;'>Component ${componentPath} kon niet geladen worden.</div>`;
+        }
+    }
+
     // === CONFIGUREER HIER DE BACKEND API URL ===
     // Altijd Render backend gebruiken, ongeacht frontend domein
     const BACKEND_API_URL = 'https://tracker-mobile-backend.onrender.com/api/admin/accounts';
 
     let adminToken = null;
-    function showAdminPanel() {
-        document.getElementById('adminLoginForm').style.display = 'none';
-        document.getElementById('adminPanel').style.display = 'block';
-        fetchAccounts();
-    }
-    function showLoginForm() {
-        document.getElementById('adminLoginForm').style.display = 'flex';
-        document.getElementById('adminPanel').style.display = 'none';
-    }
-    function eraseAdminToken() {
-        localStorage.removeItem('adminToken');
-        adminToken = null;
-    }
-    document.getElementById('adminLoginForm').onsubmit = async function(e) {
-        e.preventDefault();
-        const username = document.getElementById('adminUsername').value;
-        const password = document.getElementById('adminPassword').value;
-        document.getElementById('adminLoginError').textContent = '';
-        try {
-            const res = await fetch(BACKEND_API_URL + '/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password })
-            });
-            let data;
-            try {
-                data = await res.json();
-            } catch (jsonErr) {
-                const raw = await res.text();
-                document.getElementById('adminLoginError').textContent = 'Serverfout: geen geldige JSON. Response: ' + raw.slice(0, 200);
-                return;
-            }
-            if (data.success && data.token) {
-                adminToken = data.token;
-                localStorage.setItem('adminToken', adminToken);
-                showAdminPanel();
-            } else {
-                document.getElementById('adminLoginError').textContent = data.error || 'Login mislukt.';
-            }
-        } catch (err) {
-            document.getElementById('adminLoginError').textContent = 'Serverfout: ' + err.message;
-        }
-    };
-    document.getElementById('adminLogoutBtn').onclick = function() {
-        eraseAdminToken();
-        showLoginForm();
-    };
-    // On page load, check for adminToken
-    window.onload = function() {
+
+    // Load all components on page load
+    window.onload = async function() {
+        await importComponent('sidebar-container', 'components/Sidebar.html');
+        await importComponent('login-form-container', 'components/LoginForm.html');
+        await importComponent('account-list-container', 'components/AccountList.html');
+        await importComponent('add-account-form-container', 'components/AddAccountForm.html');
+
+        // After components are loaded, wire up logic
         adminToken = localStorage.getItem('adminToken');
         if (adminToken) {
             showAdminPanel();
         } else {
             showLoginForm();
         }
+
+        // Attach event listeners after import
+        document.getElementById('adminLoginForm').onsubmit = async function(e) {
+            e.preventDefault();
+            const username = document.getElementById('adminUsername').value;
+            const password = document.getElementById('adminPassword').value;
+            document.getElementById('adminLoginError').textContent = '';
+            try {
+                const res = await fetch(BACKEND_API_URL + '/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                let data;
+                try {
+                    data = await res.json();
+                } catch (jsonErr) {
+                    const raw = await res.text();
+                    document.getElementById('adminLoginError').textContent = 'Serverfout: geen geldige JSON. Response: ' + raw.slice(0, 200);
+                    return;
+                }
+                if (data.success && data.token) {
+                    adminToken = data.token;
+                    localStorage.setItem('adminToken', adminToken);
+                    showAdminPanel();
+                } else {
+                    document.getElementById('adminLoginError').textContent = data.error || 'Login mislukt.';
+                }
+            } catch (err) {
+                document.getElementById('adminLoginError').textContent = 'Serverfout: ' + err.message;
+            }
+        };
+        document.getElementById('adminLogoutBtn').onclick = function() {
+            eraseAdminToken();
+            showLoginForm();
+        };
+        document.getElementById('addAccountForm').onsubmit = async function(e) {
+            e.preventDefault();
+            const username = document.getElementById('newAccountUsername').value;
+            const password = document.getElementById('newAccountPassword').value;
+            document.getElementById('addAccountSuccess').textContent = '';
+            document.getElementById('addAccountError').textContent = '';
+            try {
+                const token = localStorage.getItem('adminToken') || adminToken;
+                const res = await fetch(BACKEND_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify({ username, password })
+                });
+                let data;
+                try {
+                    data = await res.json();
+                } catch (jsonErr) {
+                    const raw = await res.text();
+                    document.getElementById('addAccountError').textContent = 'Serverfout: geen geldige JSON. Response: ' + raw.slice(0, 200);
+                    return;
+                }
+                if (data.success) {
+                    document.getElementById('addAccountSuccess').textContent = 'Account toegevoegd!';
+                    document.getElementById('addAccountError').textContent = '';
+                    document.getElementById('newAccountUsername').value = '';
+                    document.getElementById('newAccountPassword').value = '';
+                    fetchAccounts();
+                } else {
+                    document.getElementById('addAccountError').textContent = data.error || 'Toevoegen mislukt.';
+                }
+            } catch (err) {
+                document.getElementById('addAccountError').textContent = 'Serverfout: ' + err.message;
+            }
+        };
     };
+
+    function showAdminPanel() {
+        document.getElementById('login-form-container').style.display = 'none';
+        document.getElementById('adminPanel').style.display = 'block';
+        fetchAccounts();
+    }
+    function showLoginForm() {
+        document.getElementById('login-form-container').style.display = 'block';
+        document.getElementById('adminPanel').style.display = 'none';
+    }
+    function eraseAdminToken() {
+        localStorage.removeItem('adminToken');
+        adminToken = null;
+    }
     async function fetchAccounts() {
         try {
             const token = localStorage.getItem('adminToken') || adminToken;
@@ -119,11 +223,14 @@
                 list.innerHTML = '';
                 data.accounts.forEach(acc => {
                     const div = document.createElement('div');
-                    div.style.display = 'flex';
-                    div.style.justifyContent = 'space-between';
-                    div.style.alignItems = 'center';
-                    div.style.marginBottom = '6px';
-                    div.innerHTML = `<span style='color:#fff;'>${acc.username}</span> <button style='background:#d32f2f;color:#fff;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;' onclick='deleteAccount(\"${acc.username}\")'>Verwijder</button>`;
+                    div.className = 'account-row';
+                    div.innerHTML = `
+                        <span class='account-username'>${acc.username}</span>
+                        <span class='account-actions'>
+                            <button style='background:#388e3c;color:#fff;border:none;border-radius:8px;padding:6px 16px;min-width:120px;font-size:1em;' onclick='showResetForm("${acc.username}")'>Reset wachtwoord</button>
+                            <button style='background:#d32f2f;color:#fff;border:none;border-radius:8px;padding:6px 16px;min-width:120px;font-size:1em;' onclick='deleteAccount("${acc.username}")'>Verwijder</button>
+                        </span>
+                    `;
                     list.appendChild(div);
                 });
             }
@@ -149,40 +256,48 @@
             alert('Serverfout bij verwijderen.');
         }
     }
-    document.getElementById('addAccountForm').onsubmit = async function(e) {
-        e.preventDefault();
-        const username = document.getElementById('newAccountUsername').value;
-        const password = document.getElementById('newAccountPassword').value;
-        document.getElementById('addAccountSuccess').textContent = '';
-        document.getElementById('addAccountError').textContent = '';
+    function showResetForm(username) {
+        const box = document.getElementById('resetFormBox');
+        box.style.display = 'block';
+        box.innerHTML = `
+            <form id='resetForm' style='width:100%;display:flex;flex-direction:column;align-items:center;'>
+                <span style='color:#fff;margin-bottom:8px;'>Wachtwoord resetten voor <b>${username}</b></span>
+                <input type='password' id='resetPassword' placeholder='Nieuw wachtwoord' required style='margin-bottom:8px;'>
+                <button type='submit' style='background:#388e3c;color:#fff;'>Reset wachtwoord</button>
+                <div class='success' id='resetSuccess'></div>
+                <div class='error' id='resetError'></div>
+            </form>
+        `;
+        document.getElementById('resetForm').onsubmit = function(e) {
+            e.preventDefault();
+            resetPassword(username);
+        };
+    }
+    async function resetPassword(username) {
+        const newPassword = document.getElementById('resetPassword').value;
+        document.getElementById('resetSuccess').textContent = '';
+        document.getElementById('resetError').textContent = '';
         try {
             const token = localStorage.getItem('adminToken') || adminToken;
-            const res = await fetch(BACKEND_API_URL, {
-                method: 'POST',
+            const res = await fetch(BACKEND_API_URL + '/' + encodeURIComponent(username), {
+                method: 'PUT',
                 headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-                body: JSON.stringify({ username, password })
+                body: JSON.stringify({ password: newPassword })
             });
-            let data;
-            try {
-                data = await res.json();
-            } catch (jsonErr) {
-                const raw = await res.text();
-                document.getElementById('addAccountError').textContent = 'Serverfout: geen geldige JSON. Response: ' + raw.slice(0, 200);
-                return;
-            }
+            const data = await res.json();
             if (data.success) {
-                document.getElementById('addAccountSuccess').textContent = 'Account toegevoegd!';
-                document.getElementById('addAccountError').textContent = '';
-                document.getElementById('newAccountUsername').value = '';
-                document.getElementById('newAccountPassword').value = '';
-                fetchAccounts();
+                document.getElementById('resetSuccess').textContent = 'Wachtwoord gereset!';
+                document.getElementById('resetError').textContent = '';
+                setTimeout(() => {
+                    document.getElementById('resetFormBox').style.display = 'none';
+                }, 1200);
             } else {
-                document.getElementById('addAccountError').textContent = data.error || 'Toevoegen mislukt.';
+                document.getElementById('resetError').textContent = data.error || 'Reset mislukt.';
             }
         } catch (err) {
-            document.getElementById('addAccountError').textContent = 'Serverfout: ' + err.message;
+            document.getElementById('resetError').textContent = 'Serverfout: ' + err.message;
         }
-    };
+    }
     </script>
 </body>
 </html>

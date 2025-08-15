@@ -28,72 +28,102 @@
 </head>
 <body>
     <div class="container-desktop">
-    <div class="login-box" id="loginBox">
-        <h2>Login</h2>
-        <form id="loginForm" style="width:100%;display:flex;flex-direction:column;align-items:center;">
-            <input type="text" id="username" placeholder="Gebruikersnaam" required autofocus style="max-width:260px;">
-            <input type="password" id="password" placeholder="Wachtwoord" required style="max-width:260px;">
-            <div class="error" id="errorMsg" style="max-width:260px;"></div>
-            <button type="submit" style="max-width:260px;">Inloggen</button>
-        </form>
-        <form id="totpSetupForm" style="width:100%;display:none;flex-direction:column;align-items:center;margin-top:18px;">
-            <div id="totpQrBox" style="margin-bottom:12px;"></div>
-            <button type="button" id="totpSetupNextBtn" style="max-width:180px;">QR gescand, ga verder</button>
-        </form>
-        <form id="totpForm" style="width:100%;display:none;flex-direction:column;align-items:center;margin-top:18px;">
-            <input type="text" id="totpCode" placeholder="Google Authenticator code" maxlength="6" style="max-width:180px;">
-            <div class="error" id="totpError" style="max-width:180px;"></div>
-            <button type="submit" style="max-width:180px;">Verifiëren</button>
-        </form>
-    </div>
-    <div class="login-box" id="logoutBox" style="display:none;flex-direction:column;align-items:center;">
-        <h2>Welkom!</h2>
-        <!-- Device Pairing Card -->
-    <div class="card-block">
-            <span style="font-size:1.2em;color:#1976d2;display:flex;align-items:center;margin-bottom:8px;"><span class="material-icons" style="margin-right:8px;">link</span>Toestel koppelen</span>
-            <form id="pairForm" style="width:100%;display:flex;flex-direction:column;align-items:center;">
-                <input type="text" id="pairCode" placeholder="Pair code (6 cijfers)" maxlength="6" style="max-width:180px;">
-                <button type="submit" style="max-width:180px;"><span class="material-icons" style="vertical-align:middle;margin-right:6px;">add_link</span>Koppel toestel</button>
-                <div class="success" id="pairSuccess" style="max-width:180px;"></div>
-                <div class="error" id="pairError" style="max-width:180px;"></div>
-            </form>
-            <div id="deviceListBox" style="width:100%;margin-top:12px;display:none;flex-direction:column;align-items:center;">
-                <label for="deviceSelector" style="color:#fff;margin-bottom:8px;display:flex;align-items:center;"><span class="material-icons" style="margin-right:6px;">devices</span>Gekoppelde toestellen:</label>
-                <select id="deviceSelector" style="max-width:180px;margin-bottom:8px;"></select>
-                <button id="removeDeviceBtn" style="max-width:180px;margin-bottom:8px;"><span class="material-icons" style="vertical-align:middle;margin-right:6px;">delete</span>Verwijder toestel</button>
-                <button id="addDeviceBtn" style="max-width:180px;margin-bottom:8px;background:#388e3c;color:#fff;"><span class="material-icons" style="vertical-align:middle;margin-right:6px;">add</span>Voeg toestel toe</button>
-            </div>
-        </div>
-        <!-- Remote Control Card -->
-    <div id="remoteControlBox" class="card-block" style="display:none;">
-            <span style="font-size:1.2em;color:#388e3c;display:flex;align-items:center;margin-bottom:8px;"><span class="material-icons" style="margin-right:8px;">security</span>Remote Control</span>
-            <div id="deviceOfflineMsg" style="display:none;color:#d32f2f;font-weight:bold;margin-bottom:12px;"><span class="material-icons" style="vertical-align:middle;margin-right:6px;">power_off</span>Telefoon is uit</div>
-            <button id="powerOnBtn" style="max-width:180px;margin-bottom:12px;" disabled title="Op afstand aanzetten is niet mogelijk op Android;"><span class="material-icons" style="vertical-align:middle;margin-right:6px;">power_settings_new</span>Aanzetten</button>
-            <button id="lockBtn" style="max-width:180px;margin-bottom:12px;"><span class="material-icons" style="vertical-align:middle;margin-right:6px;">lock</span>Vergrendel toestel</button>
-            <div id="unlockSection" style="display:none;flex-direction:column;align-items:center;margin-bottom:12px;">
-                <input type="text" id="unlockCodeInput" placeholder="Ontgrendelcode" maxlength="8" style="max-width:140px;margin-bottom:8px;">
-                <button id="unlockBtn" style="max-width:140px;"><span class="material-icons" style="vertical-align:middle;margin-right:6px;">lock_open</span>Ontgrendel toestel</button>
-            </div>
-            <button id="wipeBtn" style="max-width:180px;margin-bottom:12px;"><span class="material-icons" style="vertical-align:middle;margin-right:6px;">delete_forever</span>Wis toestel</button>
-            <button id="screenshotBtn" style="max-width:180px;margin-bottom:12px;"><span class="material-icons" style="vertical-align:middle;margin-right:6px;">photo_camera</span>Live scherm</button>
-            <div id="screenData" style="margin-top:12px;color:#e0e0e0;"></div>
-        </div>
-        <!-- Location Card -->
-    <div id="locationBox" class="card-block" style="width:320px;">
-            <span style="font-size:1.2em;color:#1976d2;display:flex;align-items:center;margin-bottom:8px;"><span class="material-icons" style="margin-right:8px;">location_on</span>Locatie</span>
-            <div id="map" style="width:100%;height:220px;border-radius:8px;overflow:hidden;background:#23263a;"></div>
-            <div id="locationText" style="margin-top:8px;color:#e0e0e0;"></div>
-            <button id="shareLocationBtn" style="margin-top:10px;background:#1976d2;color:#fff;padding:10px 18px;border:none;border-radius:8px;font-weight:bold;display:flex;align-items:center;"><span class="material-icons" style="vertical-align:middle;margin-right:6px;">share_location</span>Deel met politie</button>
-        </div>
-    <button id="logoutBtn" style="max-width:260px;margin-top:18px;display:flex;align-items:center;"><span class="material-icons" style="vertical-align:middle;margin-right:6px;">logout</span>Uitloggen</button>
-    <div id="connectionStatus" style="margin-top:12px;font-size:0.95em;"></div>
-    </div>
+        <div id="sidebar-index-container"></div>
+        <div id="login-form-index-container"></div>
+        <div id="device-list-container"></div>
+        <div id="device-actions-container"></div>
+        <!-- You can add more containers for other modular components as needed -->
+        <div id="connectionStatus" style="margin-top:12px;font-size:0.95em;"></div>
     </div>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
+    // Dynamically import components and inject into containers
+    async function importComponent(containerId, componentPath) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        try {
+            const res = await fetch(componentPath);
+            const html = await res.text();
+            container.innerHTML = html;
+        } catch (err) {
+            container.innerHTML = `<div style='color:#d32f2f;'>Component ${componentPath} kon niet geladen worden.</div>`;
+        }
+    }
+
+    // Load all components on page load
+    function safeAttach(id, event, handler) {
+        const el = document.getElementById(id);
+        if (el) el[event] = handler;
+    }
+    window.onload = async function() {
+        await importComponent('sidebar-index-container', 'components/SidebarIndex.html');
+        await importComponent('login-form-index-container', 'components/LoginFormIndex.html');
+        await importComponent('device-list-container', 'components/DeviceList.html');
+        await importComponent('device-actions-container', 'components/DeviceActions.html');
+        // Attach listeners safely
+        safeAttach('loginForm', 'onsubmit', loginFormHandler);
+        safeAttach('totpSetupNextBtn', 'onclick', totpSetupNextHandler);
+        safeAttach('totpForm', 'onsubmit', totpFormHandler);
+        safeAttach('deviceSelector', 'onchange', deviceSelectorHandler);
+        safeAttach('removeDeviceBtn', 'onclick', removeDeviceBtnHandler);
+        safeAttach('logoutBtn', 'onclick', logoutBtnHandler);
+        safeAttach('pairForm', 'onsubmit', pairFormHandler);
+        // Hide pairing form by default, show when addDeviceBtn is clicked
+        var addDeviceBtn = document.getElementById('addDeviceBtn');
+        if (addDeviceBtn) {
+            addDeviceBtn.onclick = function() {
+                const pairForm = document.getElementById('pairForm');
+                if (pairForm && pairForm.style) pairForm.style.display = 'flex';
+                const pairSuccess = document.getElementById('pairSuccess');
+                if (pairSuccess) pairSuccess.textContent = '';
+                const pairError = document.getElementById('pairError');
+                if (pairError) pairError.textContent = '';
+                const pairCode = document.getElementById('pairCode');
+                if (pairCode) pairCode.value = '';
+            };
+        }
+        // Now run your login state logic
+        const pairedDevices = getPairedDevices();
+        if (getCookie('loggedIn') === 'true') {
+            if (document.getElementById('loginBox')) document.getElementById('loginBox').style.display = 'none';
+            if (document.getElementById('logoutBox')) document.getElementById('logoutBox').style.display = 'flex';
+            if (pairedDevices.length > 0) {
+                const deviceListBox = document.getElementById('deviceListBox');
+                if (deviceListBox && deviceListBox.style) deviceListBox.style.display = 'flex';
+                populateDeviceSelector(pairedDevices);
+                const remoteControlBox = document.getElementById('remoteControlBox');
+                if (remoteControlBox && remoteControlBox.style) remoteControlBox.style.display = 'flex';
+                joinDeviceRoom(pairedDevices[0].code);
+                const pairForm = document.getElementById('pairForm');
+                if (pairForm && pairForm.style) pairForm.style.display = 'none';
+            } else {
+                const pairForm = document.getElementById('pairForm');
+                if (pairForm && pairForm.style) pairForm.style.display = 'flex';
+                const deviceListBox = document.getElementById('deviceListBox');
+                if (deviceListBox && deviceListBox.style) deviceListBox.style.display = 'none';
+                const remoteControlBox = document.getElementById('remoteControlBox');
+                if (remoteControlBox && remoteControlBox.style) remoteControlBox.style.display = 'none';
+            }
+        } else {
+            if (document.getElementById('loginBox')) document.getElementById('loginBox').style.display = 'flex';
+            if (document.getElementById('logoutBox')) document.getElementById('logoutBox').style.display = 'none';
+            if (pairedDevices.length > 0) {
+                const deviceListBox = document.getElementById('deviceListBox');
+                if (deviceListBox && deviceListBox.style) deviceListBox.style.display = 'flex';
+                populateDeviceSelector(pairedDevices);
+            } else {
+                const deviceListBox = document.getElementById('deviceListBox');
+                if (deviceListBox && deviceListBox.style) deviceListBox.style.display = 'none';
+            }
+            const pairForm = document.getElementById('pairForm');
+            if (pairForm && pairForm.style) pairForm.style.display = 'none';
+            const remoteControlBox = document.getElementById('remoteControlBox');
+            if (remoteControlBox && remoteControlBox.style) remoteControlBox.style.display = 'none';
+        }
+    }
     // === CONFIGUREER HIER DE BACKEND API URL ===
     const BACKEND_API_URL = 'https://tracker-mobile-backend.onrender.com/api';
 
@@ -165,60 +195,6 @@
         localStorage.setItem('pairedDevices', JSON.stringify(devices));
     }
 
-    // On page load, check login state and paired devices, and assign event handlers
-    window.onload = function() {
-        const pairedDevices = getPairedDevices();
-        if (getCookie('loggedIn') === 'true') {
-            showLogout();
-            if (pairedDevices.length > 0) {
-                document.getElementById('deviceListBox').style.display = 'flex';
-                populateDeviceSelector(pairedDevices);
-                document.getElementById('remoteControlBox').style.display = 'flex';
-                joinDeviceRoom(pairedDevices[0].code);
-                document.getElementById('pairForm').style.display = 'none';
-            } else {
-                document.getElementById('pairForm').style.display = 'flex';
-                document.getElementById('deviceListBox').style.display = 'none';
-                document.getElementById('remoteControlBox').style.display = 'none';
-            }
-        } else {
-            showLogin();
-            if (pairedDevices.length > 0) {
-                document.getElementById('deviceListBox').style.display = 'flex';
-                populateDeviceSelector(pairedDevices);
-            } else {
-                document.getElementById('deviceListBox').style.display = 'none';
-            }
-            document.getElementById('pairForm').style.display = 'none';
-            document.getElementById('remoteControlBox').style.display = 'none';
-        }
-        // Hide pairing form by default, show when addDeviceBtn is clicked
-        var addDeviceBtn = document.getElementById('addDeviceBtn');
-        if (addDeviceBtn) {
-            addDeviceBtn.onclick = function() {
-                document.getElementById('pairForm').style.display = 'flex';
-                document.getElementById('pairSuccess').textContent = '';
-                document.getElementById('pairError').textContent = '';
-                document.getElementById('pairCode').value = '';
-            };
-        }
-
-        var loginForm = document.getElementById('loginForm');
-        if (loginForm) loginForm.onsubmit = loginFormHandler;
-        var totpSetupNextBtn = document.getElementById('totpSetupNextBtn');
-        if (totpSetupNextBtn) totpSetupNextBtn.onclick = totpSetupNextHandler;
-        var totpForm = document.getElementById('totpForm');
-        if (totpForm) totpForm.onsubmit = totpFormHandler;
-    // No admin event handlers in member dashboard
-        var deviceSelector = document.getElementById('deviceSelector');
-        if (deviceSelector) deviceSelector.onchange = deviceSelectorHandler;
-        var removeDeviceBtn = document.getElementById('removeDeviceBtn');
-        if (removeDeviceBtn) removeDeviceBtn.onclick = removeDeviceBtnHandler;
-        var logoutBtn = document.getElementById('logoutBtn');
-        if (logoutBtn) logoutBtn.onclick = logoutBtnHandler;
-        var pairForm = document.getElementById('pairForm');
-        if (pairForm) pairForm.onsubmit = pairFormHandler;
-    };
 
     // Event handler functions
     let pendingLogin = null;
