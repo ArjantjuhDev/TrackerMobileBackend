@@ -1,25 +1,67 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:background="#181a20"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="24dp"
+    android:gravity="center_horizontal">
 
-    <EditText
-        android:id="@+id/editTextItem"
+    <TextView
+        android:id="@+id/title"
+        android:text="TrackerMobile Remote Control"
+        android:textSize="24sp"
+        android:textColor="#FFFFFF"
+        android:textStyle="bold"
+        android:layout_marginBottom="24dp"
+        android:gravity="center"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Voeg een item toe" />
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:id="@+id/statusText"
+        android:text="Status: Device Admin niet actief"
+        android:textSize="16sp"
+        android:textColor="#e0e0e0"
+        android:layout_marginBottom="18dp"
+        android:gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
 
     <Button
-        android:id="@+id/buttonAdd"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Toevoegen" />
-
-    <ListView
-        android:id="@+id/listViewItems"
+        android:id="@+id/lockBtn"
+        android:text="Vergrendel toestel"
+        android:backgroundTint="#1976d2"
+        android:textColor="#fff"
+        android:layout_marginBottom="12dp"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1" />
+        android:layout_height="wrap_content" />
+
+    <Button
+        android:id="@+id/wipeBtn"
+        android:text="Wis toestel"
+        android:backgroundTint="#d32f2f"
+        android:textColor="#fff"
+        android:layout_marginBottom="12dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <Button
+        android:id="@+id/screenshotBtn"
+        android:text="Maak screenshot"
+        android:backgroundTint="#388e3c"
+        android:textColor="#fff"
+        android:layout_marginBottom="18dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:id="@+id/feedbackText"
+        android:text=""
+        android:textSize="15sp"
+        android:textColor="#e0e0e0"
+        android:gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
 </LinearLayout>

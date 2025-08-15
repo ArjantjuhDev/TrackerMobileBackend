@@ -51,6 +51,9 @@ app.get('/api/is_paired/:code', async (req, res) => {
   }
 });
 
+const request2fa = require('./api/request_2fa');
+app.use('/api/request_2fa', request2fa);
+
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Blockchain backend listening on port ${PORT}`);

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:background="#181a20"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:padding="32dp">
+
+    <TextView
+        android:id="@+id/lockInfo"
+        android:text="Toestel is vergrendeld. Voer de code in om te ontgrendelen."
+        android:textSize="20sp"
+        android:textColor="#fff"
+        android:gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="24dp" />
+
+    <EditText
+        android:id="@+id/codeInput"
+        android:hint="Ontgrendelcode"
+        android:inputType="numberPassword"
+        android:textColor="#fff"
+        android:background="#23263a"
+        android:gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="18dp" />
+
+    <Button
+        android:id="@+id/unlockBtn"
+        android:text="Ontgrendel"
+        android:backgroundTint="#388e3c"
+        android:textColor="#fff"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+</LinearLayout>
