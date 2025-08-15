@@ -28,6 +28,26 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
+    <TextView
+        android:id="@+id/permissionsText"
+        android:text="Rechten: Locatie, Camera, Opslag"
+        android:textSize="15sp"
+        android:textColor="#d32f2f"
+        android:layout_marginBottom="12dp"
+        android:gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:id="@+id/websiteActionsText"
+        android:text="Wat kan de website doen:\n- Vergrendelen\n- Ontgrendelen\n- Wis toestel\n- Screenshot maken\n- Locatie opvragen\n- Rechten opvragen"
+        android:textSize="15sp"
+        android:textColor="#388e3c"
+        android:layout_marginBottom="18dp"
+        android:gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
     <Button
         android:id="@+id/lockBtn"
         android:text="Vergrendel toestel"

@@ -40,25 +40,32 @@
             <div class="success" id="pairSuccess" style="max-width:180px;"></div>
             <div class="error" id="pairError" style="max-width:180px;"></div>
         </form>
-        <div id="remoteControlBox" style="display:none;flex-direction:column;align-items:center;margin-top:24px;">
-            <h2 style="color:#fff;">Remote Control</h2>
-            <button id="lockBtn" style="max-width:180px;margin-bottom:12px;">Vergrendel toestel</button>
-            <div id="unlockSection" style="display:none;flex-direction:column;align-items:center;margin-bottom:12px;">
-                <input type="text" id="unlockCodeInput" placeholder="Ontgrendelcode" maxlength="8" style="max-width:140px;margin-bottom:8px;">
-                <button id="unlockBtn" style="max-width:140px;">Ontgrendel toestel</button>
-            </div>
-            <button id="wipeBtn" style="max-width:180px;margin-bottom:12px;">Wis toestel</button>
-            <button id="screenshotBtn" style="max-width:180px;margin-bottom:12px;">Maak screenshot</button>
-            <div id="screenData" style="margin-top:12px;color:#e0e0e0;"></div>
-            <div id="locationBox" style="margin-top:18px;width:320px;">
-                <h3 style="color:#fff;">Locatie</h3>
-                <div id="map" style="width:100%;height:220px;border-radius:8px;overflow:hidden;background:#23263a;"></div>
-                <div id="locationText" style="margin-top:8px;color:#e0e0e0;"></div>
-                <button id="shareLocationBtn" style="margin-top:10px;background:#1976d2;color:#fff;padding:10px 18px;border:none;border-radius:8px;font-weight:bold;">Deel met politie</button>
-            </div>
-            <!-- Leaflet map container -->
-            <div id="map" style="width:100%;height:220px;border-radius:8px;overflow:hidden;"></div>
+        <div id="deviceListBox" style="width:100%;margin-top:18px;display:none;flex-direction:column;align-items:center;">
+            <label for="deviceSelector" style="color:#fff;margin-bottom:8px;">Gekoppelde toestellen:</label>
+            <select id="deviceSelector" style="max-width:180px;margin-bottom:8px;"></select>
+            <button id="removeDeviceBtn" style="max-width:180px;margin-bottom:8px;">Verwijder toestel</button>
         </div>
+            <div id="remoteControlBox" style="display:none;flex-direction:column;align-items:center;margin-top:24px;">
+                <h2 style="color:#fff;">Remote Control</h2>
+                <div id="deviceOfflineMsg" style="display:none;color:#d32f2f;font-weight:bold;margin-bottom:12px;">Telefoon is uit</div>
+                <button id="powerOnBtn" style="max-width:180px;margin-bottom:12px;" disabled title="Op afstand aanzetten is niet mogelijk op Android.">Aanzetten</button>
+                <button id="lockBtn" style="max-width:180px;margin-bottom:12px;">Vergrendel toestel</button>
+                <div id="unlockSection" style="display:none;flex-direction:column;align-items:center;margin-bottom:12px;">
+                    <input type="text" id="unlockCodeInput" placeholder="Ontgrendelcode" maxlength="8" style="max-width:140px;margin-bottom:8px;">
+                    <button id="unlockBtn" style="max-width:140px;">Ontgrendel toestel</button>
+                </div>
+                <button id="wipeBtn" style="max-width:180px;margin-bottom:12px;">Wis toestel</button>
+                <button id="screenshotBtn" style="max-width:180px;margin-bottom:12px;">Maak screenshot</button>
+                <div id="screenData" style="margin-top:12px;color:#e0e0e0;"></div>
+                <div id="locationBox" style="margin-top:18px;width:320px;">
+                    <h3 style="color:#fff;">Locatie</h3>
+                    <div id="map" style="width:100%;height:220px;border-radius:8px;overflow:hidden;background:#23263a;"></div>
+                    <div id="locationText" style="margin-top:8px;color:#e0e0e0;"></div>
+                    <button id="shareLocationBtn" style="margin-top:10px;background:#1976d2;color:#fff;padding:10px 18px;border:none;border-radius:8px;font-weight:bold;">Deel met politie</button>
+                </div>
+                <!-- Leaflet map container -->
+                <div id="map" style="width:100%;height:220px;border-radius:8px;overflow:hidden;"></div>
+            </div>
         <button id="logoutBtn" style="max-width:260px;margin-top:18px;">Uitloggen</button>
         <div id="connectionStatus" style="margin-top:12px;font-size:0.95em;"></div>
     </div>
@@ -95,35 +102,63 @@
     function showLogin() {
         document.getElementById('loginBox').style.display = 'flex';
         document.getElementById('logoutBox').style.display = 'none';
+        // Do NOT clear paired devices on logout
     }
     function showLogout() {
         document.getElementById('loginBox').style.display = 'none';
         document.getElementById('logoutBox').style.display = 'flex';
     }
 
-    // On page load, check login state
+    // Multi-device helpers
+    function getPairedDevices() {
+        const json = localStorage.getItem('pairedDevices');
+        return json ? JSON.parse(json) : [];
+    }
+    function setPairedDevices(devices) {
+        localStorage.setItem('pairedDevices', JSON.stringify(devices));
+    }
+
+    // On page load, check login state and paired devices
     window.onload = function() {
+        const pairedDevices = getPairedDevices();
         if (getCookie('loggedIn') === 'true') {
-            showLogout();
-            // Show pairing form only after 2FA
-            document.getElementById('pairForm').style.display = 'flex';
-            document.getElementById('remoteControlBox').style.display = 'none';
-            document.getElementById('unlockSection').style.display = 'none';
-            document.getElementById('wipeBtn').style.display = 'none';
-            document.getElementById('screenshotBtn').style.display = 'none';
-            checkConnection();
-            // Pairing persistent maken
-            const savedPairCode = getCookie('pairCode');
-            if (savedPairCode && savedPairCode.length === 6) {
-                joinDeviceRoom(savedPairCode);
-                document.getElementById('pairCode').value = savedPairCode;
+            if (pairedDevices.length > 0) {
+                showLogout();
+                document.getElementById('pairForm').style.display = 'none';
+                document.getElementById('deviceListBox').style.display = 'flex';
+                populateDeviceSelector(pairedDevices);
+                document.getElementById('remoteControlBox').style.display = 'flex';
+                joinDeviceRoom(pairedDevices[0].code);
+            } else {
+                showLogout();
+                document.getElementById('pairForm').style.display = 'flex';
+                document.getElementById('deviceListBox').style.display = 'none';
+                document.getElementById('remoteControlBox').style.display = 'none';
             }
         } else {
             showLogin();
+            // Always show paired devices in selector, but hide remote control until logged in
+            if (pairedDevices.length > 0) {
+                document.getElementById('deviceListBox').style.display = 'flex';
+                populateDeviceSelector(pairedDevices);
+            } else {
+                document.getElementById('deviceListBox').style.display = 'none';
+            }
             document.getElementById('pairForm').style.display = 'none';
             document.getElementById('remoteControlBox').style.display = 'none';
         }
     };
+
+    function populateDeviceSelector(devices) {
+        const selector = document.getElementById('deviceSelector');
+        selector.innerHTML = '';
+        devices.forEach((dev, idx) => {
+            const opt = document.createElement('option');
+            opt.value = dev.code;
+            opt.textContent = dev.name ? dev.name + ' (' + dev.code + ')' : dev.code;
+            selector.appendChild(opt);
+        });
+    }
 
     // Login form handler
     // Eerst login, dan 2FA
@@ -193,6 +228,7 @@
     document.getElementById('logoutBtn').onclick = function() {
         eraseCookie('loggedIn');
         showLogin();
+        // Do NOT clear paired devices here
     };
 
     // Device pairing logic
@@ -214,13 +250,44 @@
             const data = await res.json();
             if (data.success) {
                 document.getElementById('pairSuccess').textContent = 'Toestel gekoppeld!';
-                setCookie('pairCode', code, 30); // 30 dagen onthouden
+                let pairedDevices = getPairedDevices();
+                // Ask for device name
+                let name = prompt('Naam voor toestel?', 'Android ' + (pairedDevices.length + 1));
+                pairedDevices.push({ code, name });
+                setPairedDevices(pairedDevices);
+                populateDeviceSelector(pairedDevices);
+                document.getElementById('pairForm').style.display = 'none';
+                document.getElementById('deviceListBox').style.display = 'flex';
+                document.getElementById('remoteControlBox').style.display = 'flex';
                 joinDeviceRoom(code);
             } else {
                 document.getElementById('pairError').textContent = data.error || 'Koppeling mislukt.';
             }
         } catch (err) {
             document.getElementById('pairError').textContent = 'Serverfout: ' + err.message;
+        }
+    };
+
+    document.getElementById('deviceSelector').onchange = function() {
+        const code = this.value;
+        joinDeviceRoom(code);
+    };
+
+    document.getElementById('removeDeviceBtn').onclick = function() {
+        let pairedDevices = getPairedDevices();
+        const selector = document.getElementById('deviceSelector');
+        const idx = selector.selectedIndex;
+        if (idx >= 0) {
+            pairedDevices.splice(idx, 1);
+            setPairedDevices(pairedDevices);
+            populateDeviceSelector(pairedDevices);
+            if (pairedDevices.length > 0) {
+                joinDeviceRoom(pairedDevices[0].code);
+            } else {
+                document.getElementById('deviceListBox').style.display = 'none';
+                document.getElementById('remoteControlBox').style.display = 'none';
+                document.getElementById('pairForm').style.display = 'flex';
+            }
         }
     };
 
@@ -269,6 +336,8 @@
             console.log('Socket.IO: created socket, joining room', code);
             socket.on('connect', () => {
                 document.getElementById('connectionStatus').textContent = 'Verbinding maken...';
+                document.getElementById('deviceOfflineMsg').style.display = 'none';
+                document.getElementById('powerOnBtn').disabled = true;
                 console.log('Socket.IO: connected, emitting join-room', code);
                 socket.emit('join-room', code);
                 requestPermissionsOnApp();
@@ -276,22 +345,32 @@
             });
             socket.on('paired', () => {
                 document.getElementById('connectionStatus').textContent = 'Verbonden met toestel (' + code + ')';
+                document.getElementById('deviceOfflineMsg').style.display = 'none';
+                document.getElementById('powerOnBtn').disabled = true;
                 console.log('Socket.IO: received paired event');
             });
             socket.on('disconnect', () => {
-                document.getElementById('connectionStatus').textContent = 'Verbinding verbroken.';
+                document.getElementById('connectionStatus').textContent = 'Telefoon is uit.';
+                document.getElementById('deviceOfflineMsg').style.display = 'block';
+                document.getElementById('powerOnBtn').disabled = true;
                 console.log('Socket.IO: disconnected');
             });
             socket.on('connect_error', (err) => {
                 document.getElementById('connectionStatus').textContent = 'Socket.io fout: ' + err.message;
+                document.getElementById('deviceOfflineMsg').style.display = 'block';
+                document.getElementById('powerOnBtn').disabled = true;
                 console.log('Socket.IO: connect_error', err);
             });
             socket.on('user-joined', (id) => {
                 document.getElementById('connectionStatus').textContent = 'Toestel verbonden: ' + id;
+                document.getElementById('deviceOfflineMsg').style.display = 'none';
+                document.getElementById('powerOnBtn').disabled = true;
                 console.log('Socket.IO: user-joined', id);
             });
             socket.on('permissions-accepted', () => {
                 document.getElementById('remoteControlBox').style.display = 'flex';
+                document.getElementById('deviceOfflineMsg').style.display = 'none';
+                document.getElementById('powerOnBtn').disabled = true;
                 console.log('Socket.IO: permissions-accepted received');
             });
             socket.on('screen-data', (data) => {
@@ -308,6 +387,8 @@
             });
         } catch (err) {
             document.getElementById('connectionStatus').textContent = 'Socket.io fout: ' + err.message;
+            document.getElementById('deviceOfflineMsg').style.display = 'block';
+            document.getElementById('powerOnBtn').disabled = true;
             console.log('Socket.IO: error', err);
         }
     }

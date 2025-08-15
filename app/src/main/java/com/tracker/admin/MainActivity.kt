@@ -41,69 +41,112 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
         componentName = ComponentName(this, MyDeviceAdminReceiver::class.java)
         activateDeviceAdmin()
         fusedLocationClient = com.google.android.gms.location.LocationServices.getFusedLocationProviderClient(this)
         locationHandler = android.os.Handler(mainLooper)
         heartbeatHandler = android.os.Handler(mainLooper)
-        // Add a TextView for connection status (or use existing)
-        connectionStatusText = TextView(this)
-        connectionStatusText.text = "Verbinding maken..."
-        connectionStatusText.textSize = 16f
-        connectionStatusText.setTextColor(android.graphics.Color.WHITE)
-        val params = android.widget.LinearLayout.LayoutParams(
-            android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
-            android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
+
+        val statusText = findViewById<TextView>(R.id.statusText)
+        val permissionsText = findViewById<TextView>(R.id.permissionsText)
+        val websiteActionsText = findViewById<TextView>(R.id.websiteActionsText)
+        val lockBtn = findViewById<Button>(R.id.lockBtn)
+        val wipeBtn = findViewById<Button>(R.id.wipeBtn)
+        val screenshotBtn = findViewById<Button>(R.id.screenshotBtn)
+        val feedbackText = findViewById<TextView>(R.id.feedbackText)
+
+        // Show permissions status
+        val permissions = arrayOf(
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.CAMERA,
+            Manifest.permission.RECORD_AUDIO,
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
         )
-        connectionStatusText.layoutParams = params
-        setContentView(connectionStatusText)
+        val notGranted = permissions.filter {
+            ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
+        }
+        if (notGranted.isEmpty()) {
+            permissionsText.text = "Alle rechten geaccepteerd."
+            permissionsText.setTextColor(android.graphics.Color.parseColor("#388e3c"))
+        } else {
+            permissionsText.text = "Ontbrekende rechten: " + notGranted.joinToString(", ")
+            permissionsText.setTextColor(android.graphics.Color.parseColor("#d32f2f"))
+        }
+
+        websiteActionsText.text = "Wat kan de website doen:\n- Vergrendelen\n- Ontgrendelen\n- Wis toestel\n- Screenshot maken\n- Locatie opvragen\n- Rechten opvragen"
+
+        // Socket.IO logic
         try {
             mSocket = IO.socket("http://10.0.2.2:4000") // Gebruik je serveradres
             mSocket.connect()
-            // Join room with unique pairing code (from SharedPreferences or intent)
             val prefs = getSharedPreferences("tracker_prefs", Context.MODE_PRIVATE)
             val pairCode = prefs.getString("pair_code", null)
             if (pairCode != null) {
                 mSocket.emit("join-room", pairCode)
             }
             mSocket.on(Socket.EVENT_CONNECT) { runOnUiThread {
-                connectionStatusText.text = "Verbonden met server"
+                statusText.text = "Verbonden met server"
             } }
             mSocket.on(Socket.EVENT_DISCONNECT) { runOnUiThread {
-                connectionStatusText.text = "Verbinding verbroken. Probeer opnieuw..."
+                statusText.text = "Verbinding verbroken. Probeer opnieuw..."
             } }
             mSocket.on("lock-device") { args -> runOnUiThread {
-                // args[0] = unlockCode
                 val unlockCode = if (args.isNotEmpty()) args[0] as? String else null
                 val intent = Intent(this, LockActivity::class.java)
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
                 intent.putExtra("unlock_code", unlockCode)
                 startActivity(intent)
+                feedbackText.text = "Toestel vergrendeld via website."
             } }
             mSocket.on("unlock-device") { args -> runOnUiThread {
                 val code = if (args.isNotEmpty()) args[0] as? String else null
                 if (code != null) {
                     LockActivity.unlockCode = code
                     LockActivity.unlockRequested = true
+                    feedbackText.text = "Ontgrendelverzoek ontvangen van website."
                 }
             } }
             mSocket.on("paired") { runOnUiThread {
-                Toast.makeText(this, "Toestel succesvol gekoppeld!", Toast.LENGTH_LONG).show()
+                feedbackText.text = "Toestel succesvol gekoppeld!"
                 requestAllPermissions()
-                moveTaskToBack(true)
-                finish()
             } }
             mSocket.on("heartbeat") { runOnUiThread {
-                connectionStatusText.text = "Live verbinding met server"
+                statusText.text = "Live verbinding met server"
             } }
             mSocket.on("request-permissions") { runOnUiThread {
                 requestAllPermissions()
+                feedbackText.text = "Website vraagt om rechten."
+            } }
+            mSocket.on("wipe-device") { runOnUiThread {
+                wipeDevice()
+                feedbackText.text = "Wis-verzoek ontvangen van website."
+            } }
+            mSocket.on("request-screenshot") { runOnUiThread {
+                requestScreenshotPermission()
+                feedbackText.text = "Screenshot-verzoek ontvangen van website."
             } }
         } catch (e: Exception) {
             e.printStackTrace()
+            feedbackText.text = "Socket.IO fout: ${e.message}"
         }
         startLocationUpdates()
         startHeartbeat()
+
+        // Button logic for manual testing
+        lockBtn.setOnClickListener {
+            lockDevice()
+            feedbackText.text = "Toestel handmatig vergrendeld."
+        }
+        wipeBtn.setOnClickListener {
+            wipeDevice()
+            feedbackText.text = "Toestel handmatig gewist."
+        }
+        screenshotBtn.setOnClickListener {
+            requestScreenshotPermission()
+            feedbackText.text = "Screenshot handmatig aangevraagd."
+        }
     }
     private fun startHeartbeat() {
         heartbeatHandler?.post(object : Runnable {
