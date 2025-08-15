@@ -109,10 +109,23 @@
     // === CONFIGUREER HIER DE BACKEND API URL ===
     const BACKEND_API_URL = 'https://tracker-mobile-backend.onrender.com/api';
 
+    // JWT helpers
+    function setJwtToken(token) {
+        localStorage.setItem('jwtToken', token || '');
+    }
+    function getJwtToken() {
+        return localStorage.getItem('jwtToken') || '';
+    }
+    function eraseJwtToken() {
+        localStorage.removeItem('jwtToken');
+    }
+
     // Admin: fetch and render accounts
     async function fetchAccounts() {
         try {
-            const res = await fetch(`${BACKEND_API_URL}/admin/accounts`);
+            const res = await fetch(`${BACKEND_API_URL}/admin/accounts`, {
+                headers: { 'Authorization': 'Bearer ' + getJwtToken() }
+            });
             const data = await res.json();
             if (data.success && Array.isArray(data.accounts)) {
                 const list = document.getElementById('accountList');
@@ -134,7 +147,10 @@
     async function deleteAccount(username) {
         if (!confirm('Account verwijderen: ' + username + '?')) return;
         try {
-            const res = await fetch(`${BACKEND_API_URL}/admin/accounts/` + encodeURIComponent(username), { method: 'DELETE' });
+            const res = await fetch(`${BACKEND_API_URL}/admin/accounts/` + encodeURIComponent(username), {
+                method: 'DELETE',
+                headers: { 'Authorization': 'Bearer ' + getJwtToken() }
+            });
             const data = await res.json();
             if (data.success) {
                 fetchAccounts();
@@ -154,7 +170,10 @@
         try {
             const res = await fetch(`${BACKEND_API_URL}/admin/accounts`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + getJwtToken()
+                },
                 body: JSON.stringify({ username, password })
             });
             const data = await res.json();
@@ -228,7 +247,7 @@
         localStorage.setItem('pairedDevices', JSON.stringify(devices));
     }
 
-    // On page load, check login state and paired devices
+    // On page load, check login state and paired devices, and assign event handlers
     window.onload = function() {
         const pairedDevices = getPairedDevices();
         if (getCookie('loggedIn') === 'true') {
@@ -262,7 +281,27 @@
             document.getElementById('pairError').textContent = '';
             document.getElementById('pairCode').value = '';
         };
+
+        // Move all event handler assignments here
+        document.getElementById('loginForm').onsubmit = loginFormHandler;
+        document.getElementById('totpSetupNextBtn').onclick = totpSetupNextHandler;
+        document.getElementById('totpForm').onsubmit = totpFormHandler;
+        document.getElementById('addAccountForm').onsubmit = addAccountFormHandler;
+        document.getElementById('deviceSelector').onchange = deviceSelectorHandler;
+        document.getElementById('removeDeviceBtn').onclick = removeDeviceBtnHandler;
+        document.getElementById('logoutBtn').onclick = logoutBtnHandler;
+        document.getElementById('pairForm').onsubmit = pairFormHandler;
     };
+
+    // Move handler functions out for assignment
+    function loginFormHandler(e) { /* ...existing code... */ }
+    function totpSetupNextHandler(e) { /* ...existing code... */ }
+    function totpFormHandler(e) { /* ...existing code... */ }
+    function addAccountFormHandler(e) { /* ...existing code... */ }
+    function deviceSelectorHandler(e) { /* ...existing code... */ }
+    function removeDeviceBtnHandler(e) { /* ...existing code... */ }
+    function logoutBtnHandler(e) { /* ...existing code... */ }
+    function pairFormHandler(e) { /* ...existing code... */ }
 
     function populateDeviceSelector(devices) {
         const selector = document.getElementById('deviceSelector');
@@ -338,6 +377,8 @@
                 setButtonLoading(document.querySelector('#totpForm button'), false);
                 setCookie('loggedIn', 'true', 7); // 7 dagen ingelogd
                 document.getElementById('totpError').textContent = '';
+                // Store JWT if present
+                if (data.token) setJwtToken(data.token);
                 showLogout();
                 document.getElementById('pairForm').style.display = 'flex';
                 document.getElementById('remoteControlBox').style.display = 'none';
@@ -389,9 +430,10 @@
 
     // Logout button handler
     document.getElementById('logoutBtn').onclick = function() {
-        eraseCookie('loggedIn');
-        showLogin();
-        // Do NOT clear paired devices here
+    eraseCookie('loggedIn');
+    eraseJwtToken();
+    showLogin();
+    // Do NOT clear paired devices here
     };
 
     // Device pairing logic

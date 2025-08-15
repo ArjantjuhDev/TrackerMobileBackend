@@ -33,7 +33,14 @@ router.post('/verify', (req, res) => {
     window: 1
   });
   if (verified) {
-    res.json({ success: true });
+    // Issue JWT token for admin only
+    let tokenJwt = null;
+    if (username === 'admin') {
+      const jwt = require('jsonwebtoken');
+      const JWT_SECRET = process.env.JWT_SECRET || 'tracker2025supersecret';
+      tokenJwt = jwt.sign({ username: 'admin', role: 'admin' }, JWT_SECRET, { expiresIn: '2h' });
+    }
+    res.json({ success: true, token: tokenJwt });
   } else {
     res.json({ success: false, error: 'Invalid code' });
   }
