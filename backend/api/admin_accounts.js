@@ -6,6 +6,14 @@ const router = express.Router();
 
 const db = new sqlite3.Database('locations.db');
 
+// Zorg dat de accounts tabel altijd bestaat vóór gebruik
+db.run(`CREATE TABLE IF NOT EXISTS accounts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE,
+    password TEXT,
+    created_at TEXT
+)`);
+
 const JWT_SECRET = process.env.JWT_SECRET || 'tracker2025supersecret';
 
 // Create default admin account if not exists (hashed password)
@@ -16,13 +24,6 @@ db.get('SELECT * FROM accounts WHERE username = ?', ['admin'], (err, row) => {
         console.log('Default admin account aangemaakt: admin / admin2025');
     }
 });
-
-db.run(`CREATE TABLE IF NOT EXISTS accounts (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT UNIQUE,
-    password TEXT,
-    created_at TEXT
-)`);
 
 // ...existing code...
 
