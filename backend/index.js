@@ -119,6 +119,9 @@ app.get('/api/is_paired/:code', async (req, res) => {
 const request2fa = require('./api/request_2fa');
 app.use('/api/request_2fa', request2fa);
 
+const adminAccounts = require('./api/admin_accounts');
+app.use('/api/admin/accounts', adminAccounts);
+
 const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {
   console.log(`Backend with Socket.IO listening on port ${PORT}`);
