@@ -1,4 +1,4 @@
-## Render Build Fix
+# Render Build Fix
 
 1. Ga naar je Render Web Service instellingen.
 2. Voeg een environment variable toe:
@@ -15,7 +15,7 @@
 	- "@sveltejs/adapter-node": "1.0.0"
 7. Push je code naar GitHub en trigger een nieuwe deploy op Render.
 
-Resultaat: Render gebruikt nu Node 18.x en je build werkt zonder permission errors.
+**Resultaat:** Render gebruikt nu Node 18.x en je build werkt zonder permission errors.
 # Svelte + Vite
 
 This template should help get you started developing with Svelte in Vite.
