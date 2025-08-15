@@ -4,9 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "svelte-kit dev",
-    "build": "svelte-kit build",
-    "start": "node build/index.js"
+    "dev": "npm run dev",
+    "build": "npm run build",
+    "start": "npm run start"
   },
   "dependencies": {
     "@sveltejs/kit": "1.0.0",
