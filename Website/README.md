@@ -1,3 +1,21 @@
+## Render Build Fix
+
+1. Ga naar je Render Web Service instellingen.
+2. Voeg een environment variable toe:
+	- Name: NODE_VERSION
+	- Value: 18.20.3
+3. Sla de instellingen op.
+4. Verwijder node_modules en package-lock.json uit je repository (niet committen!)
+5. Scripts in package.json:
+	- "dev": "svelte-kit dev"
+	- "build": "svelte-kit build"
+	- "start": "node build/index.js"
+6. Dependencies:
+	- "@sveltejs/kit": "1.0.0"
+	- "@sveltejs/adapter-node": "1.0.0"
+7. Push je code naar GitHub en trigger een nieuwe deploy op Render.
+
+Resultaat: Render gebruikt nu Node 18.x en je build werkt zonder permission errors.
 # Svelte + Vite
 
 This template should help get you started developing with Svelte in Vite.
