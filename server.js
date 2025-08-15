@@ -64,11 +64,17 @@ function checkApiKey(req, res, next) {
 // Device registration: app sends device_id and pair_code on first start
 app.post('/api/register_device', checkApiKey, (req, res) => {
     const { device_id, pair_code } = req.body;
+    console.log(`[REGISTER_DEVICE] device_id: ${device_id}, pair_code: ${pair_code}`);
     if (!device_id || !pair_code) {
+        console.log('[REGISTER_DEVICE] Invalid data');
         return res.status(400).json({ error: 'Invalid data' });
     }
     db.run('INSERT INTO devices (device_id, pair_code, paired, registered_at) VALUES (?, ?, 0, ?)', [device_id, pair_code, new Date().toISOString()], function(err) {
-        if (err) return res.status(500).json({ error: 'DB error' });
+        if (err) {
+            console.log('[REGISTER_DEVICE] DB error:', err);
+            return res.status(500).json({ error: 'DB error' });
+        }
+        console.log(`[REGISTER_DEVICE] Registered device_id: ${device_id}, pair_code: ${pair_code}`);
         res.status(201).json({ status: 'registered' });
     });
 });
@@ -76,14 +82,26 @@ app.post('/api/register_device', checkApiKey, (req, res) => {
 // Pair device from dashboard
 app.post('/api/pair_device', checkApiKey, (req, res) => {
     const { code } = req.body;
+    console.log(`[PAIR_DEVICE] code: ${code}`);
     if (!code || code.length !== 6) {
+        console.log('[PAIR_DEVICE] Ongeldige code');
         return res.json({ success: false, error: 'Ongeldige code' });
     }
     db.get('SELECT * FROM devices WHERE pair_code = ? AND paired = 0', [code], (err, row) => {
-        if (err) return res.json({ success: false, error: 'DB error' });
-        if (!row) return res.json({ success: false, error: 'Geen toestel gevonden met deze code' });
+        if (err) {
+            console.log('[PAIR_DEVICE] DB error:', err);
+            return res.json({ success: false, error: 'DB error' });
+        }
+        if (!row) {
+            console.log(`[PAIR_DEVICE] Geen toestel gevonden met deze code: ${code}`);
+            return res.json({ success: false, error: 'Geen toestel gevonden met deze code' });
+        }
         db.run('UPDATE devices SET paired = 1 WHERE id = ?', [row.id], function(err2) {
-            if (err2) return res.json({ success: false, error: 'DB error' });
+            if (err2) {
+                console.log('[PAIR_DEVICE] DB error:', err2);
+                return res.json({ success: false, error: 'DB error' });
+            }
+            console.log(`[PAIR_DEVICE] Paired device_id: ${row.device_id}, pair_code: ${code}`);
             res.json({ success: true });
         });
     });

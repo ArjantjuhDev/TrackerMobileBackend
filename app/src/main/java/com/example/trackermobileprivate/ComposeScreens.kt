@@ -220,6 +220,31 @@ fun MainScreen(
             codeShown = true
             val prefs = context.getSharedPreferences("tracker_prefs", Context.MODE_PRIVATE)
             prefs.edit().putString("pair_code", generatedCode).apply()
+            // Register device and code with backend
+            coroutineScope.launch {
+                try {
+                    val deviceId = prefs.getString("device_id", "") ?: ""
+                    val url = URL("https://trackermobilebackend.onrender.com/api/register_device")
+                    val body = "{" +
+                        "\"device_id\": \"$deviceId\"," +
+                        "\"pair_code\": \"$generatedCode\"}"
+                    val conn = withContext(Dispatchers.IO) { url.openConnection() as HttpURLConnection }
+                    conn.requestMethod = "POST"
+                    conn.setRequestProperty("Content-Type", "application/json")
+                    conn.setRequestProperty("x-api-key", "861396c20f3ffc10ae7af8def0783aeb")
+                    conn.doOutput = true
+                    withContext(Dispatchers.IO) { conn.outputStream.write(body.toByteArray()) }
+                    val response = withContext(Dispatchers.IO) { conn.inputStream.bufferedReader().readText() }
+                    val json = JSONObject(response)
+                    if (json.optString("status") == "registered") {
+                        deviceRegistered = true
+                    } else {
+                        codeError = "Registratie mislukt: ${json.optString("error", "Onbekende fout")}" 
+                    }
+                } catch (e: Exception) {
+                    codeError = "Fout bij registratie: ${e.message}"
+                }
+            }
         }
         Card(
             modifier = Modifier.fillMaxWidth().padding(8.dp),
