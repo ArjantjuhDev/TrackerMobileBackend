@@ -15,4 +15,4 @@ export const hooks = {
 	handleError: (({ error }) => { console.error(error) }),
 };
 
-export { default as root } from '../root.js';
+export { default as root } from '../root.svelte';
