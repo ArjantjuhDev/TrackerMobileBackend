@@ -1,0 +1,24 @@
+# Render Blueprint voor SvelteKit Node Adapter
+
+services:
+  - type: web
+    name: sveltekit-backend
+    env: node
+    rootDir: Website
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_VERSION
+        value: 18.20.3
+    plan: starter
+    autoDeploy: true
+
+# Toelichting
+# - rootDir: Website (jouw SvelteKit projectmap)
+# - buildCommand: npm install && npm run build (zorgt dat dependencies en build correct zijn)
+# - startCommand: npm start (start Node adapter build)
+# - envVars: Node versie 18.x voor maximale compatibiliteit
+# - autoDeploy: true (automatisch deployen bij push)
+# - plan: starter (pas aan indien gewenst)
+
+# Commit deze render.yaml in je hoofdmap en Render zal deze automatisch herkennen bij het aanmaken van een nieuwe service.
