@@ -88,4 +88,17 @@ router.delete('/:username', requireAdmin, (req, res) => {
     });
 });
 
+// Reset password for account (admin only)
+router.put('/:username', requireAdmin, (req, res) => {
+    const username = req.params.username;
+    const { password } = req.body;
+    if (!password) return res.json({ success: false, error: 'Geen wachtwoord opgegeven' });
+    const hash = bcrypt.hashSync(password, 10);
+    db.run('UPDATE accounts SET password = ? WHERE username = ?', [hash, username], function(err) {
+        if (err) return res.json({ success: false, error: 'DB error' });
+        if (this.changes === 0) return res.json({ success: false, error: 'Account niet gevonden' });
+        res.json({ success: true });
+    });
+});
+
 module.exports = router;

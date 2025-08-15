@@ -85,41 +85,42 @@
                 if (pairCode) pairCode.value = '';
             };
         }
-        // Now run your login state logic
-        const pairedDevices = getPairedDevices();
-        if (getCookie('loggedIn') === 'true') {
-            if (document.getElementById('loginBox')) document.getElementById('loginBox').style.display = 'none';
-            if (document.getElementById('logoutBox')) document.getElementById('logoutBox').style.display = 'flex';
-            if (pairedDevices.length > 0) {
-                const deviceListBox = document.getElementById('deviceListBox');
-                if (deviceListBox && deviceListBox.style) deviceListBox.style.display = 'flex';
-                populateDeviceSelector(pairedDevices);
-                const remoteControlBox = document.getElementById('remoteControlBox');
-                if (remoteControlBox && remoteControlBox.style) remoteControlBox.style.display = 'flex';
-                joinDeviceRoom(pairedDevices[0].code);
-                const pairForm = document.getElementById('pairForm');
-                if (pairForm && pairForm.style) pairForm.style.display = 'none';
-            } else {
-                const pairForm = document.getElementById('pairForm');
-                if (pairForm && pairForm.style) pairForm.style.display = 'flex';
-                const deviceListBox = document.getElementById('deviceListBox');
-                if (deviceListBox && deviceListBox.style) deviceListBox.style.display = 'none';
-                const remoteControlBox = document.getElementById('remoteControlBox');
-                if (remoteControlBox && remoteControlBox.style) remoteControlBox.style.display = 'none';
-            }
-        } else {
+        // Always show login screen unless logged in
+        if (getCookie('loggedIn') !== 'true') {
             if (document.getElementById('loginBox')) document.getElementById('loginBox').style.display = 'flex';
             if (document.getElementById('logoutBox')) document.getElementById('logoutBox').style.display = 'none';
-            if (pairedDevices.length > 0) {
-                const deviceListBox = document.getElementById('deviceListBox');
-                if (deviceListBox && deviceListBox.style) deviceListBox.style.display = 'flex';
-                populateDeviceSelector(pairedDevices);
-            } else {
-                const deviceListBox = document.getElementById('deviceListBox');
-                if (deviceListBox && deviceListBox.style) deviceListBox.style.display = 'none';
-            }
+            // Hide member dashboard sections
+            const deviceListBox = document.getElementById('deviceListBox');
+            if (deviceListBox && deviceListBox.style) deviceListBox.style.display = 'none';
+            const remoteControlBox = document.getElementById('remoteControlBox');
+            if (remoteControlBox && remoteControlBox.style) remoteControlBox.style.display = 'none';
             const pairForm = document.getElementById('pairForm');
             if (pairForm && pairForm.style) pairForm.style.display = 'none';
+            return;
+        }
+        // If logged in, show correct dashboard
+        const pairedDevices = getPairedDevices();
+        let username = localStorage.getItem('lastLoginUser');
+        if (username === 'admin') {
+            window.location.href = 'admin.html';
+            return;
+        }
+        if (document.getElementById('loginBox')) document.getElementById('loginBox').style.display = 'none';
+        if (document.getElementById('logoutBox')) document.getElementById('logoutBox').style.display = 'flex';
+        if (pairedDevices.length > 0) {
+            const deviceListBox = document.getElementById('deviceListBox');
+            if (deviceListBox && deviceListBox.style) deviceListBox.style.display = 'flex';
+            populateDeviceSelector(pairedDevices);
+            const remoteControlBox = document.getElementById('remoteControlBox');
+            if (remoteControlBox && remoteControlBox.style) remoteControlBox.style.display = 'flex';
+            joinDeviceRoom(pairedDevices[0].code);
+            const pairForm = document.getElementById('pairForm');
+            if (pairForm && pairForm.style) pairForm.style.display = 'none';
+        } else {
+            const pairForm = document.getElementById('pairForm');
+            if (pairForm && pairForm.style) pairForm.style.display = 'flex';
+            const deviceListBox = document.getElementById('deviceListBox');
+            if (deviceListBox && deviceListBox.style) deviceListBox.style.display = 'none';
             const remoteControlBox = document.getElementById('remoteControlBox');
             if (remoteControlBox && remoteControlBox.style) remoteControlBox.style.display = 'none';
         }
@@ -206,6 +207,7 @@
         document.getElementById('errorMsg').textContent = '';
         if (username && password) {
             pendingLogin = { username, password };
+            localStorage.setItem('lastLoginUser', username); // Save for dashboard routing
             // Check if 2FA is already set up for this user
             fetch(`${BACKEND_API_URL}/totp_2fa/status`, {
                 method: 'POST',
@@ -374,86 +376,7 @@
         });
     }
 
-    // Login form handler
-    // Eerst login, dan 2FA
-    // pendingLogin is now declared above with the event handler functions
-    document.getElementById('loginForm').onsubmit = async function(e) {
-        setButtonLoading(document.querySelector('#loginForm button'), true);
-        e.preventDefault();
-        const username = document.getElementById('username').value;
-        const password = document.getElementById('password').value;
-        document.getElementById('errorMsg').textContent = '';
-        if (username && password) {
-            // Simpele demo: sla username op en ga naar TOTP setup
-            pendingLogin = { username, password };
-            // Vraag TOTP QR code aan
-            try {
-                const res = await fetch(`${BACKEND_API_URL}/totp_2fa/register`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username })
-                });
-                const data = await res.json();
-                if (data.success && data.qr) {
-                    setButtonLoading(document.querySelector('#loginForm button'), false);
-                    document.getElementById('loginForm').style.display = 'none';
-                    document.getElementById('totpSetupForm').style.display = 'flex';
-                    document.getElementById('totpQrBox').innerHTML = `<img src='${data.qr}' style='max-width:180px;border-radius:8px;margin-bottom:8px;'><div style='color:#fff;font-size:0.95em;'>Scan deze QR met Google Authenticator</div>`;
-                } else {
-                    setButtonLoading(document.querySelector('#loginForm button'), false);
-                    document.getElementById('errorMsg').textContent = 'Kon QR code niet genereren.';
-                }
-            } catch (err) {
-                setButtonLoading(document.querySelector('#loginForm button'), false);
-                document.getElementById('errorMsg').textContent = 'Serverfout: ' + err.message;
-            }
-        } else {
-            setButtonLoading(document.querySelector('#loginForm button'), false);
-            document.getElementById('errorMsg').textContent = 'Ongeldige gegevens';
-        }
-    };
-    document.getElementById('totpSetupNextBtn').onclick = function() {
-        document.getElementById('totpSetupForm').style.display = 'none';
-        document.getElementById('totpForm').style.display = 'flex';
-    };
-    document.getElementById('totpForm').onsubmit = async function(e) {
-        setButtonLoading(document.querySelector('#totpForm button'), true);
-        e.preventDefault();
-        const code = document.getElementById('totpCode').value;
-        document.getElementById('totpError').textContent = '';
-        if (!code || code.length !== 6) {
-            document.getElementById('totpError').textContent = 'Voer een geldige 6-cijferige code in.';
-            setButtonLoading(document.querySelector('#totpForm button'), false);
-            return;
-        }
-        try {
-            const res = await fetch(`${BACKEND_API_URL}/totp_2fa/verify`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username: pendingLogin.username, token: code })
-            });
-            const data = await res.json();
-            if (data.success) {
-                setButtonLoading(document.querySelector('#totpForm button'), false);
-                setCookie('loggedIn', 'true', 7); // 7 dagen ingelogd
-                document.getElementById('totpError').textContent = '';
-                // Store JWT if present
-                if (data.token) setJwtToken(data.token);
-                showLogout();
-                document.getElementById('pairForm').style.display = 'flex';
-                document.getElementById('remoteControlBox').style.display = 'none';
-                checkConnection();
-                // Only fetch accounts after login and JWT
-                fetchAccounts();
-            } else {
-                setButtonLoading(document.querySelector('#totpForm button'), false);
-                document.getElementById('totpError').textContent = 'Ongeldige code.';
-            }
-        } catch (err) {
-            setButtonLoading(document.querySelector('#totpForm button'), false);
-            document.getElementById('totpError').textContent = 'Serverfout: ' + err.message;
-        }
-    };
+    // ...existing code...
 
 
     // Request permissions on app from website

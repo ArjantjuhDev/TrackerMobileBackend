@@ -112,83 +112,93 @@
         await importComponent('account-list-container', 'components/AccountList.html');
         await importComponent('add-account-form-container', 'components/AddAccountForm.html');
 
-        // After components are loaded, wire up logic
+        // Always show login form first if not logged in
         adminToken = localStorage.getItem('adminToken');
-        if (adminToken) {
-            showAdminPanel();
-        } else {
+        if (!adminToken) {
             showLoginForm();
+        } else {
+            showAdminPanel();
         }
 
-        // Attach event listeners after import
-        document.getElementById('adminLoginForm').onsubmit = async function(e) {
-            e.preventDefault();
-            const username = document.getElementById('adminUsername').value;
-            const password = document.getElementById('adminPassword').value;
-            document.getElementById('adminLoginError').textContent = '';
-            try {
-                const res = await fetch(BACKEND_API_URL + '/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password })
-                });
-                let data;
+        // Attach event listeners only after components are loaded and visible
+        const loginForm = document.getElementById('adminLoginForm');
+        if (loginForm) {
+            loginForm.style.display = 'flex';
+            loginForm.onsubmit = async function(e) {
+                e.preventDefault();
+                const username = document.getElementById('adminUsername').value;
+                const password = document.getElementById('adminPassword').value;
+                document.getElementById('adminLoginError').textContent = '';
                 try {
-                    data = await res.json();
-                } catch (jsonErr) {
-                    const raw = await res.text();
-                    document.getElementById('adminLoginError').textContent = 'Serverfout: geen geldige JSON. Response: ' + raw.slice(0, 200);
-                    return;
+                    const res = await fetch(BACKEND_API_URL + '/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username, password })
+                    });
+                    let data;
+                    try {
+                        data = await res.json();
+                    } catch (jsonErr) {
+                        const raw = await res.text();
+                        document.getElementById('adminLoginError').textContent = 'Serverfout: geen geldige JSON. Response: ' + raw.slice(0, 200);
+                        return;
+                    }
+                    if (data.success && data.token) {
+                        adminToken = data.token;
+                        localStorage.setItem('adminToken', adminToken);
+                        showAdminPanel();
+                    } else {
+                        document.getElementById('adminLoginError').textContent = data.error || 'Login mislukt.';
+                    }
+                } catch (err) {
+                    document.getElementById('adminLoginError').textContent = 'Serverfout: ' + err.message;
                 }
-                if (data.success && data.token) {
-                    adminToken = data.token;
-                    localStorage.setItem('adminToken', adminToken);
-                    showAdminPanel();
-                } else {
-                    document.getElementById('adminLoginError').textContent = data.error || 'Login mislukt.';
-                }
-            } catch (err) {
-                document.getElementById('adminLoginError').textContent = 'Serverfout: ' + err.message;
-            }
-        };
-        document.getElementById('adminLogoutBtn').onclick = function() {
-            eraseAdminToken();
-            showLoginForm();
-        };
-        document.getElementById('addAccountForm').onsubmit = async function(e) {
-            e.preventDefault();
-            const username = document.getElementById('newAccountUsername').value;
-            const password = document.getElementById('newAccountPassword').value;
-            document.getElementById('addAccountSuccess').textContent = '';
-            document.getElementById('addAccountError').textContent = '';
-            try {
-                const token = localStorage.getItem('adminToken') || adminToken;
-                const res = await fetch(BACKEND_API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-                    body: JSON.stringify({ username, password })
-                });
-                let data;
+            };
+        }
+        const logoutBtn = document.getElementById('adminLogoutBtn');
+        if (logoutBtn) {
+            logoutBtn.onclick = function() {
+                eraseAdminToken();
+                showLoginForm();
+            };
+        }
+        const addAccountForm = document.getElementById('addAccountForm');
+        if (addAccountForm) {
+            addAccountForm.onsubmit = async function(e) {
+                e.preventDefault();
+                const username = document.getElementById('newAccountUsername').value;
+                const password = document.getElementById('newAccountPassword').value;
+                document.getElementById('addAccountSuccess').textContent = '';
+                document.getElementById('addAccountError').textContent = '';
                 try {
-                    data = await res.json();
-                } catch (jsonErr) {
-                    const raw = await res.text();
-                    document.getElementById('addAccountError').textContent = 'Serverfout: geen geldige JSON. Response: ' + raw.slice(0, 200);
-                    return;
+                    const token = localStorage.getItem('adminToken') || adminToken;
+                    const res = await fetch(BACKEND_API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                        body: JSON.stringify({ username, password })
+                    });
+                    let data;
+                    try {
+                        data = await res.json();
+                    } catch (jsonErr) {
+                        const raw = await res.text();
+                        document.getElementById('addAccountError').textContent = 'Serverfout: geen geldige JSON. Response: ' + raw.slice(0, 200);
+                        return;
+                    }
+                    if (data.success) {
+                        document.getElementById('addAccountSuccess').textContent = 'Account toegevoegd!';
+                        document.getElementById('addAccountError').textContent = '';
+                        document.getElementById('newAccountUsername').value = '';
+                        document.getElementById('newAccountPassword').value = '';
+                        fetchAccounts();
+                    } else {
+                        document.getElementById('addAccountError').textContent = data.error || 'Toevoegen mislukt.';
+                    }
+                } catch (err) {
+                    document.getElementById('addAccountError').textContent = 'Serverfout: ' + err.message;
                 }
-                if (data.success) {
-                    document.getElementById('addAccountSuccess').textContent = 'Account toegevoegd!';
-                    document.getElementById('addAccountError').textContent = '';
-                    document.getElementById('newAccountUsername').value = '';
-                    document.getElementById('newAccountPassword').value = '';
-                    fetchAccounts();
-                } else {
-                    document.getElementById('addAccountError').textContent = data.error || 'Toevoegen mislukt.';
-                }
-            } catch (err) {
-                document.getElementById('addAccountError').textContent = 'Serverfout: ' + err.message;
-            }
-        };
+            };
+        }
     };
 
     function showAdminPanel() {
