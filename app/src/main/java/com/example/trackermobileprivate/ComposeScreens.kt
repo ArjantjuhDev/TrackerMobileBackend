@@ -43,6 +43,7 @@ import org.json.JSONObject
 import android.app.Activity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.compose.LocalActivity
 
 @Composable
 fun MainScreen(
@@ -101,12 +102,75 @@ fun MainScreen(
     var deviceName by remember { mutableStateOf("") }
     var deviceNameError by remember { mutableStateOf("") }
     val coroutineScope = rememberCoroutineScope()
-    val activity = LocalContext.current as? Activity
+    val activity = LocalActivity.current
     val locationLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         locationPermissionGranted.value = granted
     }
     val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         cameraPermissionGranted.value = granted
+    }
+
+    // State triggers for coroutine launches
+    var validateLockCodeTrigger by remember { mutableStateOf(false) }
+    var pendingLockCode by remember { mutableStateOf("") }
+    var registerDeviceTrigger by remember { mutableStateOf(false) }
+    var pendingGeneratedCode by remember { mutableStateOf("") }
+
+    // Lock code validation coroutine
+    LaunchedEffect(validateLockCodeTrigger) {
+        if (validateLockCodeTrigger && pendingLockCode.length == 6) {
+            try {
+                val url = URL("https://tracker-mobile-private.vercel.app/api/validate_code")
+                val body = "{\"code\": \"$pendingLockCode\"}"
+                val conn = withContext(Dispatchers.IO) { url.openConnection() as HttpURLConnection }
+                conn.requestMethod = "POST"
+                conn.setRequestProperty("Content-Type", "application/json")
+                conn.doOutput = true
+                withContext(Dispatchers.IO) { conn.outputStream.write(body.toByteArray()) }
+                val response = withContext(Dispatchers.IO) { conn.inputStream.bufferedReader().readText() }
+                val json = JSONObject(response)
+                if (json.optBoolean("valid", false)) {
+                    deviceLocked = false
+                    showLockOverlay = false
+                    lockCodeInput = ""
+                } else {
+                    lockCodeError = "Code is ongeldig of verlopen."
+                }
+            } catch (e: Exception) {
+                lockCodeError = "Fout bij verbinden: ${e.message}"
+            }
+            validateLockCodeTrigger = false
+        }
+    }
+
+    // Device registration coroutine
+    LaunchedEffect(registerDeviceTrigger) {
+        if (registerDeviceTrigger && pendingGeneratedCode.isNotEmpty()) {
+            val prefs = context.getSharedPreferences("tracker_prefs", Context.MODE_PRIVATE)
+            try {
+                val deviceId = prefs.getString("device_id", "") ?: ""
+                val url = URL("https://trackermobilebackend.onrender.com/api/register_device")
+                val body = "{" +
+                    "\"device_id\": \"$deviceId\"," +
+                    "\"pair_code\": \"$pendingGeneratedCode\"}"
+                val conn = withContext(Dispatchers.IO) { url.openConnection() as HttpURLConnection }
+                conn.requestMethod = "POST"
+                conn.setRequestProperty("Content-Type", "application/json")
+                conn.setRequestProperty("x-api-key", "861396c20f3ffc10ae7af8def0783aeb")
+                conn.doOutput = true
+                withContext(Dispatchers.IO) { conn.outputStream.write(body.toByteArray()) }
+                val response = withContext(Dispatchers.IO) { conn.inputStream.bufferedReader().readText() }
+                val json = JSONObject(response)
+                if (json.optString("status") == "registered") {
+                    deviceRegistered = true
+                } else {
+                    codeError = "Registratie mislukt: ${json.optString("error", "Onbekende fout")}" 
+                }
+            } catch (e: Exception) {
+                codeError = "Fout bij registratie: ${e.message}"
+            }
+            registerDeviceTrigger = false
+        }
     }
 
     Column(
@@ -133,28 +197,8 @@ fun MainScreen(
                     Button(onClick = {
                         lockCodeError = ""
                         if (lockCodeInput.length == 6) {
-                            coroutineScope.launch {
-                                try {
-                                    val url = URL("https://tracker-mobile-private.vercel.app/api/validate_code")
-                                    val body = "{\"code\": \"$lockCodeInput\"}"
-                                    val conn = withContext(Dispatchers.IO) { url.openConnection() as HttpURLConnection }
-                                    conn.requestMethod = "POST"
-                                    conn.setRequestProperty("Content-Type", "application/json")
-                                    conn.doOutput = true
-                                    withContext(Dispatchers.IO) { conn.outputStream.write(body.toByteArray()) }
-                                    val response = withContext(Dispatchers.IO) { conn.inputStream.bufferedReader().readText() }
-                                    val json = JSONObject(response)
-                                    if (json.optBoolean("valid", false)) {
-                                        deviceLocked = false
-                                        showLockOverlay = false
-                                        lockCodeInput = ""
-                                    } else {
-                                        lockCodeError = "Code is ongeldig of verlopen."
-                                    }
-                                } catch (e: Exception) {
-                                    lockCodeError = "Fout bij verbinden: ${e.message}"
-                                }
-                            }
+                            pendingLockCode = lockCodeInput
+                            validateLockCodeTrigger = true
                         } else {
                             lockCodeError = "Voer een geldige 6-cijferige code in."
                         }
@@ -221,30 +265,8 @@ fun MainScreen(
             val prefs = context.getSharedPreferences("tracker_prefs", Context.MODE_PRIVATE)
             prefs.edit().putString("pair_code", generatedCode).apply()
             // Register device and code with backend
-            coroutineScope.launch {
-                try {
-                    val deviceId = prefs.getString("device_id", "") ?: ""
-                    val url = URL("https://trackermobilebackend.onrender.com/api/register_device")
-                    val body = "{" +
-                        "\"device_id\": \"$deviceId\"," +
-                        "\"pair_code\": \"$generatedCode\"}"
-                    val conn = withContext(Dispatchers.IO) { url.openConnection() as HttpURLConnection }
-                    conn.requestMethod = "POST"
-                    conn.setRequestProperty("Content-Type", "application/json")
-                    conn.setRequestProperty("x-api-key", "861396c20f3ffc10ae7af8def0783aeb")
-                    conn.doOutput = true
-                    withContext(Dispatchers.IO) { conn.outputStream.write(body.toByteArray()) }
-                    val response = withContext(Dispatchers.IO) { conn.inputStream.bufferedReader().readText() }
-                    val json = JSONObject(response)
-                    if (json.optString("status") == "registered") {
-                        deviceRegistered = true
-                    } else {
-                        codeError = "Registratie mislukt: ${json.optString("error", "Onbekende fout")}" 
-                    }
-                } catch (e: Exception) {
-                    codeError = "Fout bij registratie: ${e.message}"
-                }
-            }
+            pendingGeneratedCode = generatedCode
+            registerDeviceTrigger = true
         }
         Card(
             modifier = Modifier.fillMaxWidth().padding(8.dp),

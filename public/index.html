@@ -133,82 +133,71 @@
       outline: none;
     }
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(30px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-  </style>
-  <script>
-window.onload = function() {
-  const deviceNameBox = document.getElementById('deviceNameBox');
-  const appCodeInput = document.getElementById('appCodeInput');
-  const pairDeviceBtn = document.getElementById('pairDeviceBtn');
-  const pairDeviceResult = document.getElementById('pairDeviceResult');
-
-  pairDeviceBtn.addEventListener('click', async function() {
-    const appCode = appCodeInput.value.trim();
-    if (appCode.length !== 6 || !/^[0-9]{6}$/.test(appCode)) {
-      pairDeviceResult.textContent = 'Voer een geldige 6-cijferige code in.';
-      pairDeviceResult.style.color = '#d32f2f';
-      return;
-    }
-    pairDeviceResult.textContent = 'Bezig met koppelen...';
-    pairDeviceResult.style.color = '#fff';
-    try {
-      // Timeout logic
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 8000); // 8s timeout
-      let res;
-      try {
-        res = await fetch('https://trackermobilebackend.onrender.com/api/pair_device', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': '861396c20f3ffc10ae7af8def0783aeb'
-          },
-          body: JSON.stringify({code: appCode}),
-          signal: controller.signal
-        });
-        console.log('Pairing fetch response:', res);
-      } catch (fetchErr) {
-        console.error('Pairing fetch error:', fetchErr);
-        if (fetchErr.name === 'AbortError') {
-          pairDeviceResult.textContent = 'Fout: server reageert niet (timeout).';
-        } else {
-          pairDeviceResult.textContent = `Netwerkfout: ${fetchErr.message}`;
-        }
-        pairDeviceResult.style.color = '#d32f2f';
-        clearTimeout(timeout);
-        return;
-      }
-      clearTimeout(timeout);
-      let data = {};
-      try {
-        data = await res.json();
-        console.log('Pairing response JSON:', data);
-      } catch (jsonErr) {
-        console.error('Pairing JSON error:', jsonErr);
-        pairDeviceResult.textContent = `Fout bij koppelen: geen geldige JSON (${res.status})`;
-        pairDeviceResult.style.color = '#d32f2f';
-        return;
-      }
-      if (res.ok && data.success) {
-        pairDeviceResult.textContent = 'Koppeling geslaagd!';
-        pairDeviceResult.style.color = '#388e3c';
-        loadDeviceDetails();
-      } else {
-        let errorMsg = data.error || data.reason || 'Onbekende fout';
-        pairDeviceResult.textContent = `Koppeling mislukt (${res.status}): ${errorMsg}`;
-        pairDeviceResult.style.color = '#d32f2f';
-      }
-    } catch (e) {
-      console.error('Pairing catch error:', e);
-      pairDeviceResult.textContent = `Fout bij koppelen: ${e.message}`;
-      pairDeviceResult.style.color = '#d32f2f';
-    }
-  });
-  const loginForm = document.getElementById('loginForm');
-  const errorMsg = document.getElementById('errorMsg');
-  const loginBox = document.getElementById('loginBox');
+          // Robust timeout logic using AbortController
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 8000); // 8s timeout
+          try {
+            const res = await fetch('https://trackermobilebackend.onrender.com/api/pair_device', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': '861396c20f3ffc10ae7af8def0783aeb'
+              },
+              body: JSON.stringify({code: appCode}),
+              signal: controller.signal
+            });
+            console.log('Pairing fetch response:', res);
+            let data;
+            try {
+              data = await res.json();
+              console.log('Pairing response JSON:', data);
+            } catch (jsonErr) {
+              throw new Error(`Fout bij koppelen: geen geldige JSON (${res.status})`);
+            }
+            if (res.ok && data.success) {
+              pairDeviceResult.textContent = 'Koppeling geslaagd!';
+              pairDeviceResult.style.color = '#388e3c';
+              loadDeviceDetails();
+            } else {
+              let errorMsg = data.error || data.reason || 'Onbekende fout';
+              pairDeviceResult.textContent = `Koppeling mislukt (${res.status}): ${errorMsg}`;
+              pairDeviceResult.style.color = '#d32f2f';
+            }
+          } catch (error) {
+            console.error('Pairing fetch error:', error);
+            if (error.name === 'AbortError') {
+              pairDeviceResult.textContent = 'Fout: server reageert niet (timeout).';
+            } else {
+              pairDeviceResult.textContent = error.message || `Netwerkfout: ${error}`;
+            }
+            pairDeviceResult.style.color = '#d32f2f';
+          } finally {
+            clearTimeout(timeoutId);
+          }
+              pairDeviceResult.textContent = `Fout bij koppelen: geen geldige JSON (${res.status})`;
+              pairDeviceResult.style.color = '#d32f2f';
+              return;
+            }
+            if (res.ok && data.success) {
+              pairDeviceResult.textContent = 'Koppeling geslaagd!';
+              pairDeviceResult.style.color = '#388e3c';
+              loadDeviceDetails();
+            } else {
+              let errorMsg = data.error || data.reason || 'Onbekende fout';
+              pairDeviceResult.textContent = `Koppeling mislukt (${res.status}): ${errorMsg}`;
+              pairDeviceResult.style.color = '#d32f2f';
+            }
+          } catch (error) {
+            console.error('Pairing fetch error:', error);
+            if (error.name === 'AbortError') {
+              pairDeviceResult.textContent = 'Fout: server reageert niet (timeout).';
+            } else {
+              pairDeviceResult.textContent = `Netwerkfout: ${error.message}`;
+            }
+            pairDeviceResult.style.color = '#d32f2f';
+          } finally {
+            clearTimeout(timeoutId);
+          }
   const dashboard = document.getElementById('dashboard');
   const deviceIdEl = document.getElementById('deviceId');
   const deviceStateEl = document.getElementById('deviceState');
