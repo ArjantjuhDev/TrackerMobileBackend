@@ -1,14 +1,18 @@
-# Backend for TrackerMobilePrivate
+# Backend
 
-This folder contains the backend Node.js/Express code for blockchain device pairing.
+Node.js/Express API for device pairing using SQLite.
 
-- Place your `index.js` and related backend files here.
-- For Vercel deployment, add an `api/` folder and `vercel.json` config if needed.
+- index.js
+- devices.db
+- .env
+- koppeling met frontend
 
-## Structure
-- `index.js`: Main backend API
-- `blockchain/`: Smart contract and ABI files
-- `api/`: Vercel serverless functions (if used)
+### Endpoints
 
-## Deployment
-See the main README for deployment instructions.
+- `POST /api/register_device` — Register a device code
+- `POST /api/pair_device` — Pair a device code
+- `GET /api/is_paired/:code` — Check if a device code is paired
+
+### Environment Variables
+
+- `PORT` — Port to run the backend

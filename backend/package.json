@@ -1,7 +1,7 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "This folder contains the backend Node.js/Express code for blockchain device pairing.",
+  "description": "This folder contains the backend Node.js/Express code for device pairing using SQLite.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -11,6 +11,7 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "ethers": "^6.15.0"
+  "sqlite3": "^5.1.6",
+  "otplib": "^12.0.1"
   }
 }

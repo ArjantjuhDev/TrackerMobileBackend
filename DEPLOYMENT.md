@@ -2,17 +2,11 @@
 
 This guide explains how to deploy the TrackerMobilePrivate app (frontend, backend, blockchain) to GitHub and Vercel.
 
-## 1. Smart Contract Deployment
 
-- Compile and deploy `blockchain/DevicePairing.sol` to Polygon Mumbai testnet (or similar).
-- Save the contract address and ABI JSON file in `blockchain/`.
 
 ## 2. Backend Setup
 
-- Update `backend/index.js` with the deployed contract address and ABI path.
-- Add your wallet private key for transaction signing (use environment variables for security).
-- For Vercel, move API code to `backend/api/` as serverless functions if needed.
-- Deploy `backend/` to Vercel.
+
 
 ## 3. Frontend Setup
 
@@ -31,7 +25,7 @@ This guide explains how to deploy the TrackerMobilePrivate app (frontend, backen
 
 ## 6. Testing
 
-- Test device pairing end-to-end: frontend → backend → blockchain.
+
 - Check logs and error messages for troubleshooting.
 
 ## 7. Maintenance
@@ -42,7 +36,8 @@ This guide explains how to deploy the TrackerMobilePrivate app (frontend, backen
 ---
 
 For questions, see the main README or contact the project maintainer.
-# Vercel Deployment Instructions
+ 
+## Vercel Deployment Instructions
 
 1. Install dependencies:
    pip install -r requirements.txt
