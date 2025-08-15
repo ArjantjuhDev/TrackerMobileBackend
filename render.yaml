@@ -3,6 +3,7 @@ services:
     name: tracker-mobile-backend
     env: node
     plan: starter
+    rootDir: backend
     buildCommand: npm install
     startCommand: node index.js
     autoDeployTrigger: commit
