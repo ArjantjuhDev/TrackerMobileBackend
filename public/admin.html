@@ -40,8 +40,8 @@
     <script>
     // === CONFIGUREER HIER DE BACKEND API URL ===
     const BACKEND_API_URL = window.location.hostname.includes('localhost')
-        ? 'http://localhost:3001/api/admin/accounts'
-        : 'https://tracker-mobile-backend.onrender.com/api/admin/accounts';
+    ? 'http://localhost:3001/api/admin/accounts'
+    : 'https://tracker-mobile-backend.onrender.com/api/admin/accounts';
 
     let adminToken = null;
     document.getElementById('adminLoginForm').onsubmit = async function(e) {
