@@ -10,9 +10,4 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
-      # Add other environment variables as needed
-    # Optionally set a custom domain
-    # domains:
-    #   - your-custom-domain.com
-    # Health check endpoint (optional)
     healthCheckPath: /api/check_connection
